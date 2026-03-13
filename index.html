@@ -1,313 +1,806 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <title>Редактор диктанта для Genially</title>
-  <style>
-    body { font-family: 'Montserrat', Arial, sans-serif; margin:0; background:#e9eafc;}
-    .wr { max-width:1200px; margin:30px auto 80px auto; display:flex; gap:60px; }
-    .editor-panel { flex:1 1 400px; background:#fff; border-radius:15px; box-shadow:0 2px 14px #0002; padding:24px;}
-    .editor-panel h2 {border-bottom:2px solid #ddd9; padding-bottom:12px;}
-    .tasks-edit { margin-bottom:24px;}
-    .tasks-edit input, .tasks-edit select { font-size:15px; border-radius:5px; padding:3.5px 7px; margin:2px;}
-    .tasks-edit img { width:40px; height:40px; object-fit:cover; border-radius:7px;}
-    .tasks-row { display:flex; gap:6px; align-items:center; margin-bottom:4px; }
-    .tasks-row input[type="text"] { width:94px;}
-    .tasks-row .img-cell input[type="text"]{ width:160px; }
-    .tasks-row .img-cell img {margin-right:2px;}
-    .tasks-row .del { color:#a33; cursor:pointer; background:none; border:none;font-weight:700;font-size:16px;}
-    .tasks-row .del:hover { text-decoration:underline;}
-    .add-btn {background:#cdeaff;color:#147;border:none;border-radius:6px;padding:7px 11px;cursor:pointer;margin-top:3px;}
-    .opts {margin:0 0 16px 0;}
-    .opts label {margin-right:21px;font-size:15px;}
-    .section-title { font-weight:700; margin-top:24px; margin-bottom:8px; font-size:18px;}
-    textarea { width:100%; min-height:80px; font-size:13px; border-radius:7px; border:1.5px solid #89b;}
-    .iframe-preview { width:420px; height:480px; border:none; box-shadow:0 2px 12px #0002; border-radius:11px; background:#f4f6fc;}
-    .small { font-size:12px;color:#667;margin-top:-5px;}
-    .copy-btn {margin-top:7px;margin-bottom:0;padding:6px 20px;border-radius:7px;border:none;background:#8af;color:#fff;font-weight:500;font-size:14px;cursor:pointer;}
-    .main-preview { flex:1 1 420px;display:flex; flex-direction:column; align-items:center;}
-  </style>
-</head>
-<body>
-<div class="wr">
-  <div class="editor-panel">
-    <h2>Редактор диктанта (Genially)</h2>
-    <div class="section-title">Задания</div>
-    <div class="tasks-edit" id="tasks-edit"></div>
-    <button class="add-btn" onclick="addTask()">+ Добавить задание</button>
-    <div class="section-title">Настройки</div>
-    <div class="opts">
-      <label>Режим:
-        <select id="game-mode" onchange="updateSettings()">
-          <option value="order">Drag&amp;Drop буквы</option>
-          <option value="input">Печатать слово</option>
-        </select>
-      </label>
-      <label>Фон: 
-        <input type="color" id="game-bg" value="#f4f6fc" onchange="updateSettings()"/>
-        <input type="checkbox" id="bg-transparent" onchange="updateSettings()"/> прозрачный
-      </label>
-    </div>
-    <div>
-      <label>Фидбек-ru: <input type="text" id="feed-ru" value="Молодец!,Верно!,Здорово!" style="width:220px" onchange="updateSettings()"/></label>
-    </div>
-    <div>
-      <label>Фидбек-en: <input type="text" id="feed-en" value="Well done!,Correct!,Great job!" style="width:217px" onchange="updateSettings()"/></label>
-    </div>
-    <div class="section-title">Готовый <b>iframe</b> для Genially:</div>
-    <textarea id="iframe-code" readonly></textarea>
-    <button class="copy-btn" onclick="copyIframe()">Скопировать iframe-код</button>
-    <div class="small">Копируйте прямо в Genially (HTML-блок или на сайт)</div>
-    <div class="section-title">Или полный HTML для скачивания:</div>
-    <textarea id="html-code" readonly></textarea>
-    <button class="copy-btn" onclick="copyHTML()">Скопировать HTML</button>
-  </div>
-  <div class="main-preview">
-    <div class="section-title" style="margin-bottom:10px;">Предпросмотр:</div>
-    <iframe class="iframe-preview" id="game-preview"></iframe>
-  </div>
-</div>
-<script>
-let settings = {
-  mode: 'order',
-  background: '#f4f6fc',
-  transparent: false,
-  feedback: {
-    ru: ["Молодец!","Верно!","Здорово!"],
-    en: ["Well done!","Correct!","Great job!"]
-  }
-};
-let tasks = [
-  { lang:'ru', img: "https://cdn.pixabay.com/photo/2017/01/20/15/06/apple-1995056_1280.png", definition: "Красный фрукт, падает с дерева", answer: "яблоко" },
-  { lang:'en', img: "https://cdn.pixabay.com/photo/2017/01/20/15/06/apple-1995056_1280.png", definition: "A red fruit that falls from a tree", answer: "apple" }
-];
-
-function renderTaskTable() {
-  let wrap = document.getElementById('tasks-edit');
-  wrap.innerHTML = tasks.map((t,i)=>`
-    <div class="tasks-row">
-      <select onchange="editTaskLang(${i},this.value)">
-        <option value="ru"${t.lang==='ru'?' selected':''}>RU</option>
-        <option value="en"${t.lang==='en'?' selected':''}>EN</option>
-      </select>
-      <span class="img-cell">
-        <input type="text" value="${t.img}" placeholder="Image URL" onchange="editTaskImg(${i},this.value)"/>
-        <img src="${t.img}" loading="lazy" />
-      </span>
-      <input type="text" value="${t.definition}" placeholder="Дефиниция / Definition" onchange="editTaskDef(${i},this.value)"/>
-      <input type="text" value="${t.answer}" placeholder="Слово/Word" onchange="editTaskAns(${i},this.value)" />
-      <button class="del" title="Удалить" onclick="delTask(${i})">&times;</button>
-    </div>
-  `).join('');
-}
-function editTaskLang(i,val){ tasks[i].lang=val; updateAll(); }
-function editTaskImg(i,val){ tasks[i].img=val; updateAll(); }
-function editTaskDef(i,val){ tasks[i].definition=val; updateAll(); }
-function editTaskAns(i,val){ tasks[i].answer=val; updateAll(); }
-function delTask(i){ tasks.splice(i,1); updateAll(); }
-function addTask(){
-  tasks.push({lang:"ru", img:"", definition:"", answer:""});
-  updateAll();
-  setTimeout(() => {
-    let inputs = document.querySelectorAll('.tasks-edit .tasks-row:last-child input[type="text"]');
-    if (inputs && inputs[0]) inputs[0].focus();
-  }, 100);
-}
-function updateSettings(){
-  settings.mode = document.getElementById('game-mode').value;
-  settings.background = document.getElementById('game-bg').value;
-  settings.transparent = document.getElementById('bg-transparent').checked;
-  settings.feedback.ru = document.getElementById('feed-ru').value.split(',').map(x=>x.trim()).filter(Boolean);
-  settings.feedback.en = document.getElementById('feed-en').value.split(',').map(x=>x.trim()).filter(Boolean);
-  updateAll();
-}
-
-// ----- Критическая правка: генерируем ВЕСЬ, ПОЛНЫЙ, РАБОЧИЙ HTML, а не заглушку -----
-function generateGameCode(){
-  let grouped = { ru:[], en:[] };
-  for(let t of tasks){
-    // не включаем пустые задания
-    if((t.lang==="ru"||t.lang==="en") && t.definition && t.answer){
-      grouped[t.lang].push({...t});
+<style>
+    /* 
+    ==============================
+    CSS СТИЛИ ДЛЯ ИГРЫ
+    ==============================
+    */
+    :root {
+        --primary-color: #4CAF50; /* Зеленый */
+        --secondary-color: #FFC107; /* Желтый */
+        --text-color: #333;
+        --background-color: rgba(0, 0, 0, 0.7);
+        --card-bg-color: #f0f8ff; /* AliceBlue */
+        --border-radius: 12px;
+        --shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     }
-  }
-  let background = settings.transparent ? "transparent" : settings.background;
-  let mode = settings.mode;
 
-  return `<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <title>Интерактивный диктант</title>
-  <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
-  <style>
-    :root { --game-bg: ${background}; }
     body {
-      background: var(--game-bg);
-      font-family: 'Montserrat', sans-serif;
-      margin: 0;
-      min-height: 100vh;
+        font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+        line-height: 1.6;
+        color: var(--text-color);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
     }
-    #game-root {
-      margin-top: 50px;
-      max-width: 820px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    .tasks {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      justify-content: center;
-    }
-    .task-tile {
-      background: #fff;
-      box-shadow: 0 3px 8px #0001;
-      border-radius: 14px;
-      padding: 16px;
-      width: 180px;
-      text-align: center;
-      cursor: pointer;
-      position: relative;
-      transition: 0.2s;
-    }
-    .task-tile.done {
-      opacity: 0.5;
-    }
-    .task-overlay {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,128,64,0.45);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      color: #fff;
-      font-weight: 700;
-      border-radius: 14px;
-    }
-    .lang-btn, .mode-btn {
-      padding: 11px 25px;
-      margin: 10px 10px 18px 0;
-      border-radius: 9px;
-      background: #eaf;
-      cursor: pointer;
-      border: none;
-      font-size: 16px;
-      font-weight: 600;
-      color: #2b2952;
-      transition: 0.2s;
-    }
-    .lang-btn.active, .mode-btn.active {
-      background: #7af;
-      color: #fff;
-    }
-    .dd-letter-bank { min-height:48px;margin-bottom:13px;}
-    .dd-letter {
-      display:inline-block;
-      font-size:23px;
-      background:#def;
-      border-radius:7px;
-      padding:6px 13px;
-      margin-right:7px;
-      margin-bottom:7px;
-      cursor:grab;
-      transition:.11s;
-      border:1.5px solid #a9c8e6;
-      user-select: none;
-      position: relative;
-      z-index: 1;
-    }
-    .dd-letter.dragging {
-      opacity: 0.18 !important;
-    }
-    .dd-slot-box { 
-      min-height:52px;
-      background: #eaf2f4;
-      border-radius:8px;
-      display: flex;
-      justify-content: center;
-      padding: 6px;
-      gap: 5px;
-      margin-bottom:10px;
-      border:2px dashed #a9c8e6;
-      flex-wrap: wrap;
-      position:relative;
-    }
-    .dd-slot {
-      width:35px;height:35px;display:inline-flex;align-items:center;justify-content:center;
-      background: #fff;
-      border:1.4px solid #dfdbe7;
-      border-radius:7px;
-      font-size:21px;
-      margin:2px;
-      transition:.1s;
-      position:relative;
-      box-sizing:border-box;
-      z-index:0;
-    }
-    .manual-scale { 
-      display: flex; gap: 10px; justify-content: center; align-items:center; margin:22px auto 10px;
-    }
-    .scale-dot {
-      width: 33px; height: 33px; border-radius: 50%; background: #eef; border:2px solid #7af;
-      cursor: pointer; transition:.13s;box-sizing:border-box;box-shadow:0 1px 8px #7af4;
-      display: flex; align-items:center; justify-content:center;
-      font-size:21px; font-weight:700;color:#fff;
-    }
-    .scale-dot.active { background:#7af; color:#fff; border:2px solid #378cfc;}
-    #dnd-float-letter {
-      pointer-events:none;
-      position:fixed;
-      z-index:9999;
-      left:0;top:0;
-      display: none;
-    }
-    @media (max-width: 700px) {
-      #game-root { max-width: 99vw; }
-      .task-tile { width: 95vw; max-width: 99vw; margin-bottom: 14px;}
-    }
-  </style>
-</head>
-<body>
-<div id="game-root"></div>
-<script>
-const tasksets = ${JSON.stringify(grouped, null, 2)};
-const feedback = ${JSON.stringify(settings.feedback)};
-let userLang = null;
-let tasks = [];
-let gameMode = "${mode}";
-let manualScale = [];
-document.body.style.setProperty('--game-bg', "${background}");
-// ...дальше полный JS-код, как и раньше — см. начало этого файла ...
-// (реализуйте полную рабочую логику здесь)
-// Т.к. здесь не влазит длинная программа целиком — скопируйте основной рабочий JS,
-// который у вас на trualinka.github.io/game3/ (см. ваши прошлые сообщения — он уже у вас есть полностью!)
-</script>
-</body>
-</html>`;
-}
 
-function updateAll(){
-  renderTaskTable();
-  let html = generateGameCode();
-  let blobURL = URL.createObjectURL(new Blob([html],{type:'text/html'}));
-  document.getElementById('game-preview').src = blobURL;
-  let iframeCode = `<iframe src="${blobURL}" width="420" height="480" frameborder="0" style="background:${settings.transparent ? 'transparent':settings.background};border-radius:13px;box-shadow:0 1px 6px #0002;" allowfullscreen></iframe>`;
-  document.getElementById('iframe-code').value = iframeCode;
-  document.getElementById('html-code').value = html;
-}
-function copyIframe(){
-  const el = document.getElementById('iframe-code');
-  el.select(); el.setSelectionRange(0, 99999);
-  document.execCommand('copy');
-}
-function copyHTML(){
-  const el = document.getElementById('html-code');
-  el.select(); el.setSelectionRange(0, 99999);
-  document.execCommand('copy');
-}
-window.onload = () => { renderTaskTable(); updateAll(); };
+    /* Модальное окно для задания */
+    .modal-overlay {
+        display: none; /* Скрыто по умолчанию */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--background-color);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        width: 90%;
+        max-width: 600px;
+        text-align: center;
+        position: relative;
+        transform: translateY(-20px);
+        opacity: 0;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .modal-overlay.active .modal-content {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    .modal-header {
+        font-size: 1.5em;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: var(--primary-color);
+    }
+
+    .modal-body {
+        margin-bottom: 20px;
+    }
+
+    .modal-body img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        border: 1px solid #eee;
+    }
+
+    .modal-body p {
+        font-size: 1.1em;
+        line-height: 1.5;
+        color: #555;
+    }
+
+    /* Инпут для ответа */
+    .answer-input {
+        width: calc(100% - 20px);
+        padding: 12px;
+        border: 2px solid #ddd;
+        border-radius: var(--border-radius);
+        font-size: 1.2em;
+        text-align: center;
+        text-transform: uppercase;
+        outline: none;
+        transition: border-color 0.3s ease;
+    }
+
+    .answer-input:focus {
+        border-color: var(--primary-color);
+    }
+
+    /* Контейнер для перемешиваемых букв */
+    .scrambled-letters-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 20px;
+    }
+
+    .scrambled-letter {
+        background: var(--secondary-color);
+        color: white;
+        padding: 10px 15px;
+        border-radius: 8px;
+        cursor: grab;
+        font-weight: bold;
+        font-size: 1.1em;
+        user-select: none;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .scrambled-letter:hover {
+        background: #e0a800; /* Darker yellow */
+        transform: translateY(-2px);
+    }
+
+    .scrambled-letter.dragging {
+        opacity: 0.7;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Кнопки */
+    .btn {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 12px 25px;
+        border: none;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        font-size: 1.1em;
+        font-weight: bold;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+        margin-top: 20px;
+        text-decoration: none; /* Для ссылки-кнопки */
+        display: inline-block;
+    }
+
+    .btn:hover {
+        background-color: #43A047; /* Darker green */
+        transform: translateY(-2px);
+    }
+
+    .btn:active {
+        transform: translateY(0);
+    }
+
+    /* Фидбек */
+    .feedback-message {
+        margin-top: 20px;
+        font-size: 1.2em;
+        font-weight: bold;
+        color: var(--primary-color);
+        display: none; /* Скрыто по умолчанию */
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Оверлей после выполнения задания */
+    .task-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6); /* Затемнение */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: var(--border-radius); /* Если элемент Genially имеет скругление */
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
+        color: white;
+        font-size: 1.8em;
+        font-weight: bold;
+        text-align: center;
+        flex-direction: column;
+        gap: 10px;
+        overflow: hidden; /* Чтобы гифка не выходила за границы */
+    }
+
+    .task-overlay.completed {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .task-overlay img.feedback-gif {
+        max-width: 80%;
+        max-height: 80%;
+        border-radius: 8px;
+        object-fit: contain;
+    }
+
+    /* Стили для drag-and-drop */
+    .sortable-input-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 5px;
+        min-height: 50px; /* Чтобы контейнер не схлопывался */
+        border: 2px dashed #ccc;
+        border-radius: var(--border-radius);
+        padding: 10px;
+        margin-top: 15px;
+    }
+
+    .sortable-input-letter {
+        background: #e0e0e0; /* Светло-серый */
+        color: var(--text-color);
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: grab;
+        font-weight: bold;
+        font-size: 1.1em;
+        user-select: none;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .sortable-input-letter:hover {
+        background: #d0d0d0;
+        transform: translateY(-1px);
+    }
+
+    .sortable-input-letter.dragging {
+        opacity: 0.7;
+    }
+
+    .placeholder {
+        border: 1px dashed var(--primary-color);
+        background-color: rgba(var(--primary-color), 0.1);
+        min-width: 40px; /* Ширина для плейсхолдера */
+        height: 40px;
+        margin: 5px;
+        border-radius: 6px;
+    }
+
+    /* Стили для элементов Genially, которые становятся затемненными */
+    .genially-task-completed {
+        filter: grayscale(80%) brightness(50%);
+        transition: filter 0.5s ease;
+        pointer-events: none; /* Нельзя кликнуть после выполнения */
+    }
+
+    /* Финальное окно победы */
+    .game-over-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--background-color);
+        justify-content: center;
+        align-items: center;
+        z-index: 1001;
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    .game-over-modal.active {
+        opacity: 1;
+        visibility: visible;
+        display: flex; /* Показать, когда активно */
+    }
+
+    .game-over-content {
+        background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+        padding: 40px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        text-align: center;
+        width: 90%;
+        max-width: 500px;
+        transform: scale(0.8);
+        opacity: 0;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        border: 2px solid var(--primary-color);
+    }
+    .game-over-modal.active .game-over-content {
+        transform: scale(1);
+        opacity: 1;
+    }
+    .game-over-content h2 {
+        color: var(--primary-color);
+        font-size: 2.5em;
+        margin-bottom: 20px;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    }
+    .game-over-content p {
+        font-size: 1.3em;
+        color: #555;
+        margin-bottom: 30px;
+    }
+    .game-over-content .btn {
+        background-color: var(--secondary-color);
+        color: white;
+        font-size: 1.2em;
+        padding: 15px 30px;
+    }
+    .game-over-content .btn:hover {
+        background-color: #e0a800;
+    }
+
+</style>
+
+<div id="game-container">
+    <!-- Модальное окно для отображения задания и ввода/перетаскивания ответа -->
+    <div id="taskModalOverlay" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header" id="modalTaskHeader">Собери слово!</div>
+            <div class="modal-body">
+                <img id="modalTaskImage" src="" alt="Task Image" style="display: none;">
+                <p id="modalTaskDefinition" style="display: none;"></p>
+
+                <!-- Блок для ввода текста (сложность: type) -->
+                <input type="text" id="answerTextInput" class="answer-input" placeholder="Введите слово" style="display: none;">
+
+                <!-- Блок для перетаскивания букв (сложность: scramble) -->
+                <div id="sortableInputContainer" class="sortable-input-container" style="display: none;"></div>
+                <div id="scrambledLettersContainer" class="scrambled-letters-container" style="display: none;"></div>
+            </div>
+            <div id="feedbackMessage" class="feedback-message"></div>
+            <button id="checkAnswerButton" class="btn">Проверить</button>
+            <button id="closeModalButton" class="btn" style="display: none;">Продолжить</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно "Игра пройдена!" -->
+    <div id="gameOverModal" class="game-over-modal">
+        <div class="game-over-content">
+            <h2>🎉 Поздравляем! 🎉</h2>
+            <p>Ты успешно справился со всеми заданиями!</p>
+            <button class="btn" onclick="location.reload()">Начать заново</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* 
+    ==============================
+    JAVASCRIPT ЛОГИКА ИГРЫ
+    ==============================
+    */
+
+    // Глобальная конфигурация игры
+    const gameConfig = {
+        difficulty: 'scramble', // 'scramble' или 'type'
+        feedbackMessages: {
+            correct: ['Отлично!', 'Верно!', 'Так держать!', 'Молодец!', 'Супер!'],
+        },
+        tasks: [
+            {
+                id: 'genially_element_cat', // ID элемента Genially (например, картинки), который будет триггером
+                type: 'image', // 'image' или 'definition'
+                content: 'https://cdn-icons-png.flaticon.com/512/194/194279.png', // URL картинки
+                answer: 'КОТ',
+                feedbackOverlayContent: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMjNqZGN2ZnpqZjFiaDhxczE5ZXNiaTcxNjZ2a3N2ZWNnaWF4YXU3ZSZlcD12MV9pbnRlcm5hbF9naWZfYXR0ZnM9Z2lmcy5naXBoeS5jb20vdjIvZ2lmcC9tZWRpYXMvZTQzMmU0NWItODk0Ny00MGYwLWJkMzctNGM5Mzc3ZWVjNjE5LmpwZWc/200w.webp', // URL гифки или текст
+                isCompleted: false
+            },
+            {
+                id: 'genially_element_apple',
+                type: 'image',
+                content: 'https://cdn-icons-png.flaticon.com/512/1071/1071649.png',
+                answer: 'ЯБЛОКО',
+                feedbackOverlayContent: '🍏', // Текст
+                isCompleted: false
+            },
+            {
+                id: 'genially_element_sun',
+                type: 'definition',
+                content: 'Яркая звезда, дающая свет и тепло Земле.',
+                answer: 'СОЛНЦЕ',
+                feedbackOverlayContent: '☀️',
+                isCompleted: false
+            },
+             {
+                id: 'genially_element_book',
+                type: 'image',
+                content: 'https://cdn-icons-png.flaticon.com/512/29/29166.png',
+                answer: 'КНИГА',
+                feedbackOverlayContent: '📚',
+                isCompleted: false
+            },
+            {
+                id: 'genially_element_fish',
+                type: 'definition',
+                content: 'Животное, которое плавает в воде и имеет жабры.',
+                answer: 'РЫБА',
+                feedbackOverlayContent: '🐠',
+                isCompleted: false
+            }
+        ]
+    };
+
+    // --- DOM Элементы ---
+    const taskModalOverlay = document.getElementById('taskModalOverlay');
+    const modalTaskHeader = document.getElementById('modalTaskHeader');
+    const modalTaskImage = document.getElementById('modalTaskImage');
+    const modalTaskDefinition = document.getElementById('modalTaskDefinition');
+    const answerTextInput = document.getElementById('answerTextInput');
+    const scrambledLettersContainer = document.getElementById('scrambledLettersContainer');
+    const sortableInputContainer = document.getElementById('sortableInputContainer');
+    const feedbackMessage = document.getElementById('feedbackMessage');
+    const checkAnswerButton = document.getElementById('checkAnswerButton');
+    const closeModalButton = document.getElementById('closeModalButton');
+    const gameOverModal = document.getElementById('gameOverModal');
+
+    let currentTask = null; // Текущее активное задание
+    let draggableLetters = []; // Для хранения элементов букв при перетаскивании
+
+    // --- Вспомогательные функции ---
+
+    // Перемешивает массив (алгоритм Фишера-Йетса)
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    // Создает случайное сообщение для положительного фидбека
+    function getRandomCorrectFeedback() {
+        const messages = gameConfig.feedbackMessages.correct;
+        return messages[Math.floor(Math.random() * messages.length)];
+    }
+
+    // --- Логика для режима 'scramble' (перетаскивание букв) ---
+
+    function setupScrambleMode(answer) {
+        answerTextInput.style.display = 'none'; // Скрыть текстовый ввод
+        sortableInputContainer.style.display = 'flex';
+        scrambledLettersContainer.style.display = 'flex';
+
+        sortableInputContainer.innerHTML = ''; // Очистить предыдущие буквы
+        scrambledLettersContainer.innerHTML = ''; // Очистить предыдущие буквы
+
+        const letters = answer.toUpperCase().split('');
+        const shuffledLetters = shuffleArray([...letters]); // Копируем и перемешиваем
+
+        // Создаем целевые ячейки для перетаскивания
+        for (let i = 0; i < letters.length; i++) {
+            const placeholder = document.createElement('div');
+            placeholder.classList.add('sortable-input-letter', 'placeholder'); // Добавляем класс placeholder
+            placeholder.dataset.index = i;
+            sortableInputContainer.appendChild(placeholder);
+        }
+
+        draggableLetters = [];
+        // Создаем перемешиваемые буквы
+        shuffledLetters.forEach(letter => {
+            const letterElement = document.createElement('div');
+            letterElement.classList.add('scrambled-letter');
+            letterElement.textContent = letter;
+            letterElement.draggable = true;
+            draggableLetters.push(letterElement);
+            scrambledLettersContainer.appendChild(letterElement);
+        });
+
+        // Добавляем слушатели событий для drag-and-drop
+        draggableLetters.forEach(letter => {
+            letter.addEventListener('dragstart', handleDragStart);
+            letter.addEventListener('dragend', handleDragEnd);
+        });
+
+        sortableInputContainer.addEventListener('dragover', handleDragOver);
+        sortableInputContainer.addEventListener('drop', handleDrop);
+        sortableInputContainer.addEventListener('dragleave', handleDragLeave);
+    }
+
+    let draggedItem = null;
+
+    function handleDragStart(e) {
+        draggedItem = e.target;
+        setTimeout(() => {
+            e.target.classList.add('dragging');
+        }, 0); // Добавляем класс после начала перетаскивания
+    }
+
+    function handleDragEnd(e) {
+        e.target.classList.remove('dragging');
+        draggedItem = null;
+    }
+
+    function handleDragOver(e) {
+        e.preventDefault(); // Разрешаем drop
+        if (e.target.classList.contains('sortable-input-letter') && !e.target.classList.contains('dragging')) {
+            // Визуальный фидбек при наведении
+            e.target.style.transform = 'scale(1.1)';
+        }
+    }
+
+    function handleDragLeave(e) {
+        if (e.target.classList.contains('sortable-input-letter')) {
+            e.target.style.transform = '';
+        }
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        if (!draggedItem) return;
+
+        const target = e.target;
+        // Если перетаскиваем в пустой контейнер или на плейсхолдер
+        if (target === sortableInputContainer || target.classList.contains('placeholder')) {
+            if (target.classList.contains('placeholder')) {
+                 // Если бросаем на занятую ячейку, меняем местами
+                if (!target.classList.contains('placeholder') && target.parentElement === sortableInputContainer) {
+                    const originalParent = draggedItem.parentElement;
+                    originalParent.appendChild(target);
+                }
+                target.parentNode.insertBefore(draggedItem, target.nextSibling); // Вставляем после плейсхолдера
+                draggedItem.classList.remove('scrambled-letter');
+                draggedItem.classList.add('sortable-input-letter');
+                // Удаляем placeholder класс, если это была пустая ячейка
+                if (target.classList.contains('placeholder')) {
+                    target.remove();
+                }
+            } else { // Если бросаем в сам sortableInputContainer (добавляем в конец)
+                 // Проверить, есть ли пустые placeholder'ы
+                const emptyPlaceholder = sortableInputContainer.querySelector('.placeholder');
+                if (emptyPlaceholder) {
+                     // Если есть, вставляем туда
+                    emptyPlaceholder.replaceWith(draggedItem);
+                    draggedItem.classList.remove('scrambled-letter');
+                    draggedItem.classList.add('sortable-input-letter');
+                } else {
+                    // Если нет, просто добавляем в конец
+                    sortableInputContainer.appendChild(draggedItem);
+                    draggedItem.classList.remove('scrambled-letter');
+                    draggedItem.classList.add('sortable-input-letter');
+                }
+            }
+        } else if (target.classList.contains('sortable-input-letter') && target.parentElement === sortableInputContainer) {
+            // Если перетаскиваем на уже заполненную букву в поле ответа
+            const originalParent = draggedItem.parentElement;
+            sortableInputContainer.insertBefore(draggedItem, target);
+            if (originalParent === scrambledLettersContainer) {
+                // Если буква пришла из перемешанных букв, создаем placeholder на ее месте
+                const placeholder = document.createElement('div');
+                placeholder.classList.add('sortable-input-letter', 'placeholder');
+                originalParent.appendChild(placeholder); // Вернуть placeholder
+            } else {
+                // Если буква пришла из поля ответа, просто переставляем
+                originalParent.insertBefore(target, draggedItem);
+            }
+            draggedItem.classList.remove('scrambled-letter');
+            draggedItem.classList.add('sortable-input-letter');
+        } else if (target === scrambledLettersContainer || target.classList.contains('scrambled-letter')) {
+            // Перетаскиваем обратно в перемешанные буквы
+            if (draggedItem.parentElement === sortableInputContainer) {
+                // Возвращаем placeholder на место
+                const placeholder = document.createElement('div');
+                placeholder.classList.add('sortable-input-letter', 'placeholder');
+                draggedItem.replaceWith(placeholder);
+            }
+            scrambledLettersContainer.appendChild(draggedItem);
+            draggedItem.classList.remove('sortable-input-letter');
+            draggedItem.classList.add('scrambled-letter');
+        }
+
+        // Убрать все стили наведения
+        Array.from(sortableInputContainer.children).forEach(child => {
+            child.style.transform = '';
+        });
+    }
+
+    // --- Основная игровая логика ---
+
+    // Открывает модальное окно с заданием
+    function openTaskModal(task) {
+        currentTask = task;
+        feedbackMessage.style.display = 'none';
+        checkAnswerButton.style.display = 'block';
+        closeModalButton.style.display = 'none';
+
+        if (task.type === 'image') {
+            modalTaskImage.src = task.content;
+            modalTaskImage.style.display = 'block';
+            modalTaskDefinition.style.display = 'none';
+            modalTaskHeader.textContent = 'Что изображено?';
+        } else { // definition
+            modalTaskDefinition.textContent = task.content;
+            modalTaskDefinition.style.display = 'block';
+            modalTaskImage.style.display = 'none';
+            modalTaskHeader.textContent = 'Что это за слово?';
+        }
+
+        if (gameConfig.difficulty === 'type') {
+            answerTextInput.value = '';
+            answerTextInput.style.display = 'block';
+            sortableInputContainer.style.display = 'none';
+            scrambledLettersContainer.style.display = 'none';
+            answerTextInput.focus();
+        } else { // scramble
+            setupScrambleMode(task.answer);
+            answerTextInput.style.display = 'none';
+        }
+
+        taskModalOverlay.classList.add('active');
+    }
+
+    // Закрывает модальное окно
+    function closeTaskModal() {
+        taskModalOverlay.classList.remove('active');
+        // Добавление небольшой задержки для завершения анимации, перед тем как сбросить состояние
+        setTimeout(() => {
+             // Сброс всех полей
+            modalTaskImage.src = '';
+            modalTaskDefinition.textContent = '';
+            answerTextInput.value = '';
+            scrambledLettersContainer.innerHTML = '';
+            sortableInputContainer.innerHTML = '';
+            feedbackMessage.style.display = 'none';
+            checkAnswerButton.style.display = 'block';
+            closeModalButton.style.display = 'none';
+            currentTask = null;
+        }, 300); // Соответствует длительности CSS transition
+    }
+
+    // Проверяет ответ
+    function checkAnswer() {
+        if (!currentTask) return;
+
+        let playerAnswer = '';
+        if (gameConfig.difficulty === 'type') {
+            playerAnswer = answerTextInput.value.toUpperCase().trim();
+        } else { // scramble
+            // Собираем буквы из sortableInputContainer
+            const lettersInOrder = Array.from(sortableInputContainer.children)
+                                       .filter(el => !el.classList.contains('placeholder'))
+                                       .map(el => el.textContent)
+                                       .join('');
+            playerAnswer = lettersInOrder.toUpperCase().trim();
+        }
+
+        const correctAnswer = currentTask.answer.toUpperCase().trim();
+
+        if (playerAnswer === correctAnswer) {
+            feedbackMessage.textContent = getRandomCorrectFeedback();
+            feedbackMessage.style.color = 'var(--primary-color)';
+            feedbackMessage.style.display = 'block';
+            checkAnswerButton.style.display = 'none';
+            closeModalButton.style.display = 'block';
+
+            // Отмечаем задание как выполненное
+            currentTask.isCompleted = true;
+            markTaskAsCompletedOnGenially(currentTask.id, currentTask.feedbackOverlayContent);
+        } else {
+            feedbackMessage.textContent = 'Попробуй еще раз!';
+            feedbackMessage.style.color = '#DC3545'; // Красный для ошибки
+            feedbackMessage.style.display = 'block';
+            // В режиме scramble можно сбросить, если неправильно
+            if (gameConfig.difficulty === 'scramble') {
+                // Очищаем поле ответа и возвращаем буквы в контейнер перемешанных
+                const currentLettersInInput = Array.from(sortableInputContainer.children);
+                currentLettersInInput.forEach(letterElement => {
+                    if (!letterElement.classList.contains('placeholder')) {
+                        letterElement.classList.remove('sortable-input-letter');
+                        letterElement.classList.add('scrambled-letter');
+                        scrambledLettersContainer.appendChild(letterElement);
+                    }
+                });
+                // Восстанавливаем placeholder'ы
+                sortableInputContainer.innerHTML = '';
+                const lettersLength = currentTask.answer.length;
+                 for (let i = 0; i < lettersLength; i++) {
+                    const placeholder = document.createElement('div');
+                    placeholder.classList.add('sortable-input-letter', 'placeholder');
+                    sortableInputContainer.appendChild(placeholder);
+                }
+
+            }
+             // В режиме type просто остается текст для редактирования
+        }
+    }
+
+    // Применяет эффекты завершения задания к элементу Genially
+    function markTaskAsCompletedOnGenially(taskId, feedbackContent) {
+        const geniallyElement = document.getElementById(taskId);
+        if (geniallyElement) {
+            geniallyElement.classList.add('genially-task-completed');
+
+            // Создаем оверлей
+            const overlay = document.createElement('div');
+            overlay.classList.add('task-overlay');
+
+            if (feedbackContent.startsWith('http')) { // Если это URL (предполагаем гифку)
+                const img = document.createElement('img');
+                img.src = feedbackContent;
+                img.classList.add('feedback-gif');
+                overlay.appendChild(img);
+            } else { // Если это текст
+                overlay.textContent = feedbackContent;
+            }
+
+            // Добавляем оверлей к родительскому элементу Genially
+            // Важно: На Genially элементы могут быть обернуты в другие div'ы.
+            // Нужно найти родителя, к которому можно добавить overlay, чтобы он наложился корректно.
+            // Простейший вариант - добавлять прямо к элементу, если он может быть контейнером.
+            // Если Genially wrap'ует элементы, возможно, придется искать ближайшего позиционированного родителя.
+            // Для простоты, пока попробуем добавить прямо к элементу:
+            geniallyElement.style.position = 'relative'; // Убедимся, что родитель позиционирован
+            geniallyElement.appendChild(overlay);
+
+            // Активируем анимацию
+            setTimeout(() => {
+                overlay.classList.add('completed');
+            }, 50); // Небольшая задержка
+
+            // Проверяем, все ли задания выполнены
+            checkGameCompletion();
+        }
+    }
+
+    // Проверяет, все ли задания выполнены
+    function checkGameCompletion() {
+        const allCompleted = gameConfig.tasks.every(task => task.isCompleted);
+        if (allCompleted) {
+            setTimeout(() => { // Небольшая задержка, чтобы пользователь увидел последний фидбек
+                gameOverModal.classList.add('active');
+            }, 1000);
+        }
+    }
+
+
+    // --- Инициализация игры ---
+
+    function initializeGame() {
+        // Добавляем слушатели событий ко всем элементам заданий на Genially
+        gameConfig.tasks.forEach(task => {
+            const geniallyElement = document.getElementById(task.id);
+            if (geniallyElement) {
+                geniallyElement.style.cursor = 'pointer'; // Визуально показать, что можно кликать
+                geniallyElement.addEventListener('click', () => {
+                    if (!task.isCompleted) { // Открывать только если задание не выполнено
+                        openTaskModal(task);
+                    }
+                });
+                // Если задание уже выполнено (например, при перезагрузке страницы, если мы сохраняем состояние)
+                if (task.isCompleted) {
+                    markTaskAsCompletedOnGenially(task.id, task.feedbackOverlayContent);
+                }
+            } else {
+                console.warn(`Genially element with ID "${task.id}" not found. Please ensure it exists on the slide.`);
+            }
+        });
+
+        // Слушатели для кнопок в модальном окне
+        checkAnswerButton.addEventListener('click', checkAnswer);
+        closeModalButton.addEventListener('click', closeTaskModal);
+
+        // Закрытие модального окна по клику на оверлей (вне контента)
+        taskModalOverlay.addEventListener('click', (e) => {
+            if (e.target === taskModalOverlay && closeModalButton.style.display === 'block') { // Только если задание уже выполнено и кнопка "Продолжить" видна
+                closeTaskModal();
+            }
+        });
+
+        // Для текстового ввода - проверка по Enter
+        answerTextInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+    }
+
+    // Запускаем инициализацию, когда DOM будет готов
+    document.addEventListener('DOMContentLoaded', initializeGame);
+
+    // Genially иногда встраивает контент в iframe или загружает его асинхронно.
+    // Если DOMContentLoaded не срабатывает, можно попробовать небольшую задержку
+    // или использовать MutationObserver, но для начала DOMContentLoaded должен быть достаточен.
+    // В случае проблем, можно попробовать обернуть initializeGame в setTimeout(initializeGame, 500);
+
 </script>
-</body>
-</html>

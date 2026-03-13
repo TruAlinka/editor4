@@ -3,574 +3,345 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Конструктор диктанта</title>
+    <title>Редактор Игры "Найди Определение"</title>
     <style>
-        /* Стили редактора - упрощены и сжаты */
-        :root{--p:#4a90e2;--s:#f5a623;--c:#50e3c2;--d:#d0021b;--lb:#f9f9f9;--t:#333;--br:8px;--sh:0 4px 15px rgba(0,0,0,.1);--ts:.3s}
-        body{font-family:Arial,sans-serif;background-color:var(--lb);color:var(--t);margin:0;padding:25px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
-        #editor-container{max-width:900px;margin:0 auto;background:#fff;padding:30px;border-radius:var(--br);box-shadow:var(--sh)}
-        h1,h2,h3{color:var(--p);text-align:center}
-        .control-group{margin-bottom:25px;padding:20px;border:1px solid #e0e0e0;border-radius:var(--br)}
-        label{display:block;font-weight:700;margin-bottom:8px}
-        input[type="text"],input[type="url"],select,textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:4px;font-size:1em;box-sizing:border-box;transition:border-color var(--ts);margin-top:5px}
-        input:focus,select:focus,textarea:focus{outline:0;border-color:var(--p)}
-        textarea{resize:vertical;min-height:80px}
-        .btn{background-color:var(--p);color:#fff;padding:12px 20px;border:none;border-radius:var(--br);cursor:pointer;font-size:1em;font-weight:700;transition:background-color var(--ts),transform var(--ts);text-decoration:none;display:inline-block}
-        .btn:hover{transform:translateY(-2px)}
-        .btn.btn-add{background-color:var(--c);margin-top:15px;display:block;width:100%}
-        .btn.btn-danger{background-color:var(--d);padding:8px 12px;font-size:.9em}
-        .btn.btn-main-action{width:100%;padding:15px;font-size:1.2em;margin-top:20px}
-        .task-editor-item{background:#fafafa;padding:20px;border-radius:var(--br);margin-bottom:15px;border:1px solid #e0e0e0;position:relative}
-        .task-editor-item .field-group{margin-bottom:15px}
-        .task-editor-item .delete-task-btn{position:absolute;top:15px;right:15px}
-        #output-container{margin-top:30px;display:none}
-        #generated-code{width:100%;height:250px;font-family:monospace;font-size:.9em;border:1px solid #ccc;border-radius:4px;padding:10px;box-sizing:border-box;background:#2d2d2d;color:#f0f0f0}
-        .copy-button{margin-top:10px;background-color:var(--s)}
-        .instructions{background-color:#eef7ff;border-left:5px solid var(--p);padding:15px;margin:20px 0;border-radius:4px}
-        .top-controls{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        .editor, .preview {
+            flex: 1;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="url"], textarea {
+            width: 95%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        textarea {
+            height: 150px;
+            resize: vertical;
+        }
+        .color-inputs { display: flex; gap: 20px; align-items: center; }
+        input[type="color"] {
+            width: 50px;
+            height: 50px;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #output-code {
+            height: 200px;
+            font-family: monospace;
+            white-space: pre;
+            background-color: #2d2d2d;
+            color: #f1f1f1;
+        }
+        #preview-container {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .help-text {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
 
-    <div id="editor-container">
-        <div class="top-controls">
-            <h1 data-translate="mainTitle" style="text-align: left; margin: 0;"></h1>
-            <div class="field-group" style="margin-bottom: 0;">
-                <label for="language-selector" data-translate="languageLabel">Язык:</label>
-                <select id="language-selector">
-                    <option value="ru">Русский</option>
-                    <option value="en">English</option>
-                </select>
+    <div class="editor">
+        <h1>Редактор Игры</h1>
+
+        <h2>1. Настройки внешнего вида</h2>
+        <div class="color-inputs">
+            <div>
+                <label for="bg-color">Цвет фона:</label>
+                <input type="color" id="bg-color" value="#f0f8ff">
+            </div>
+            <div>
+                <label for="btn-color">Цвет кнопок:</label>
+                <input type="color" id="btn-color" value="#4CAF50">
             </div>
         </div>
 
-        <div class="instructions">
-            <p><strong data-translate="instructionsTitle"></strong></p>
-            <ol>
-                <li data-translate="instr1"></li>
-                <li data-translate="instr2"></li>
-                <li data-translate="instr3"></li>
-                <li data-translate="instr4"></li>
-            </ol>
-        </div>
-
-        <div class="control-group">
-            <h3 data-translate="settingsTitle"></h3>
-            <div class="field-group">
-                <label for="difficulty-selector" data-translate="difficultyLabel"></label>
-                <select id="difficulty-selector">
-                    <option value="scramble" data-translate="difficultyScramble"></option>
-                    <option value="type" data-translate="difficultyType"></option>
-                </select>
-            </div>
-        </div>
-
-        <div class="control-group">
-            <h3 data-translate="tasksTitle"></h3>
-            <div id="task-list"></div>
-            <button id="add-task-btn" class="btn btn-add" data-translate="addTaskBtn"></button>
-        </div>
+        <label for="img-url">Ссылка на изображение:</label>
+        <input type="url" id="img-url" placeholder="https://example.com/image.jpg" value="https://i.ibb.co/L5hP9Vj/plant.png">
         
-        <button id="generate-code-btn" class="btn btn-main-action" data-translate="generateBtn"></button>
-
-        <div id="output-container">
-            <h3 data-translate="outputTitle"></h3>
-            <p data-translate="outputInstructions"></p>
-            <textarea id="generated-code" readonly></textarea>
-            <button id="copy-code-btn" class="btn copy-button" data-translate="copyBtn"></button>
+        <h2>2. Содержимое игры</h2>
+        <label for="game-data">Дефиниции и ответы:</label>
+        <div class="help-text">
+            Каждая строка — один раунд. Формат: <br>
+            <b>Вопрос? | Правильный ответ, Вариант 2, Вариант 3</b>
         </div>
+        <textarea id="game-data" placeholder="Пример: Столица Франции? | Париж, Лондон, Берлин">Что отвечает за фотосинтез в клетках растений? | Хлорофилл, Митохондрия, Ядро
+Самая большая планета в Солнечной системе? | Юпитер, Сатурн, Земля</textarea>
+
+        <h2>3. Обратная связь</h2>
+        <label for="feedback-correct">Текст при верном ответе:</label>
+        <input type="text" id="feedback-correct" value="Верно! Отлично!">
+        
+        <label for="feedback-incorrect">Текст при неверном ответе:</label>
+        <input type="text" id="feedback-incorrect" value="Попробуй еще раз.">
+        
+        <label for="feedback-final">Текст по завершении игры:</label>
+        <input type="text" id="feedback-final" value="Игра окончена! Вы молодец!">
+
+        <button id="generate-btn">Сгенерировать код и обновить превью</button>
+
+        <h2>4. Готовый код</h2>
+        <label for="output-iframe">Код для вставки на сайт (iframe):</label>
+        <textarea id="output-iframe" readonly></textarea>
+        
+        <label for="output-code">Полный HTML-код игры:</label>
+        <textarea id="output-code" readonly></textarea>
     </div>
-    
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const translations = {
-            ru: {
-                mainTitle: "Конструктор диктанта",
-                languageLabel: "Язык:",
-                instructionsTitle: "Как пользоваться конструктором:",
-                instr1: "Настройте общие параметры игры ниже.",
-                instr2: "Заполните карточки заданий. Используйте кнопку \"+ Добавить задание\".",
-                instr3: "Нажмите \"Сгенерировать код игры\".",
-                instr4: "Скопируйте появившийся код и вставьте его на новый, чистый слайд Genially.",
-                settingsTitle: "1. Общие настройки",
-                difficultyLabel: "Уровень сложности:",
-                difficultyScramble: "Расставить буквы по порядку",
-                difficultyType: "Впечатать слово самостоятельно",
-                tasksTitle: "2. Задания",
-                addTaskBtn: "+ Добавить задание",
-                generateBtn: "Сгенерировать код игры",
-                outputTitle: "3. Готовый код для вставки",
-                outputInstructions: "Скопируйте этот код и вставьте его на новый слайд в Genially через \"Вставка\" -> \"Другое\".",
-                copyBtn: "Скопировать код",
-                copiedBtn: "Скопировано!",
-                deleteBtn: "Удалить",
-                taskTypeLabel: "Тип задания:",
-                taskTypeImage: "Изображение",
-                taskTypeDefinition: "Дефиниция",
-                imageLinkLabel: "Ссылка на изображение:",
-                imageLinkPlaceholder: "https://example.com/image.png",
-                definitionLabel: "Текст дефиниции:",
-                definitionPlaceholder: "Напишите определение слова...",
-                answerLabel: "Правильный ответ (слово):",
-                answerPlaceholder: "КОТ",
-                feedbackLabel: "Фидбек после ответа (текст, эмодзи или ссылка на GIF):",
-                feedbackPlaceholder: "👍 или https://media.giphy.com/cat.gif",
-                gameTitle: "Интерактивный диктант",
-                gameImageTaskHeader: "Что изображено?",
-                gameDefinitionTaskHeader: "Разгадай слово",
-                gameInputPlaceholder: "Введите слово",
-                gameCheckBtn: "Проверить",
-                gameContinueBtn: "Продолжить",
-                gameCongratsTitle: "🎉 Поздравляем! 🎉",
-                gameCongratsText: "Ты успешно справился со всеми заданиями!",
-                gameRestartBtn: "Начать заново",
-                correctFeedback: ['Отлично!', 'Верно!', 'Так держать!', 'Молодец!', 'Супер!'],
-                incorrectFeedback: 'Попробуй еще раз!'
-            },
-            en: {
-                mainTitle: "Dictation Builder",
-                languageLabel: "Language:",
-                instructionsTitle: "How to use the builder:",
-                instr1: "Configure the general game settings below.",
-                instr2: "Fill in the task cards. Use the \"+ Add task\" button.",
-                instr3: "Click \"Generate game code\".",
-                instr4: "Copy the generated code and paste it into a new, clean Genially slide.",
-                settingsTitle: "1. General Settings",
-                difficultyLabel: "Difficulty level:",
-                difficultyScramble: "Arrange the letters in order",
-                difficultyType: "Type the word yourself",
-                tasksTitle: "2. Tasks",
-                addTaskBtn: "+ Add task",
-                generateBtn: "Generate game code",
-                outputTitle: "3. Ready-to-use code",
-                outputInstructions: "Copy this code and paste it into a new slide in Genially via \"Insert\" -> \"Other\".",
-                copyBtn: "Copy code",
-                copiedBtn: "Copied!",
-                deleteBtn: "Delete",
-                taskTypeLabel: "Task type:",
-                taskTypeImage: "Image",
-                taskTypeDefinition: "Definition",
-                imageLinkLabel: "Image URL:",
-                imageLinkPlaceholder: "https://example.com/image.png",
-                definitionLabel: "Definition text:",
-                definitionPlaceholder: "Write the word's definition...",
-                answerLabel: "Correct answer (word):",
-                answerPlaceholder: "CAT",
-                feedbackLabel: "Feedback after answer (text, emoji, or GIF URL):",
-                feedbackPlaceholder: "👍 or https://media.giphy.com/cat.gif",
-                gameTitle: "Interactive Dictation",
-                gameImageTaskHeader: "What is pictured?",
-                gameDefinitionTaskHeader: "Guess the word",
-                gameInputPlaceholder: "Enter the word",
-                gameCheckBtn: "Check",
-                gameContinueBtn: "Continue",
-                gameCongratsTitle: "🎉 Congratulations! 🎉",
-                gameCongratsText: "You have successfully completed all tasks!",
-                gameRestartBtn: "Start over",
-                correctFeedback: ['Great!', 'Correct!', 'Well done!', 'Awesome!', 'Super!'],
-                incorrectFeedback: 'Try again!'
-            }
-        };
 
-        const taskList = document.getElementById('task-list');
-        const addTaskBtn = document.getElementById('add-task-btn');
-        const generateCodeBtn = document.getElementById('generate-code-btn');
-        const outputContainer = document.getElementById('output-container');
-        const generatedCodeTextarea = document.getElementById('generated-code');
-        const copyCodeBtn = document.getElementById('copy-code-btn');
-        const difficultySelector = document.getElementById('difficulty-selector');
-        const languageSelector = document.getElementById('language-selector');
-        
-        let currentLang = 'ru';
+    <div class="preview">
+        <h1>Превью Игры</h1>
+        <iframe id="preview-container" title="Превью игры"></iframe>
+    </div>
 
-        // --- LOCAL STORAGE FUNCTIONS ---
-        const saveState = () => {
-            const tasksData = Array.from(document.querySelectorAll('.task-editor-item')).map(item => ({
-                type: item.querySelector('.task-type-select').value,
-                contentImage: item.querySelector('.task-content-image').value,
-                contentDefinition: item.querySelector('.task-content-definition').value,
-                answer: item.querySelector('.task-answer').value,
-                feedback: item.querySelector('.task-feedback').value,
-            }));
+<script>
+    // --- Элементы управления редактора ---
+    const bgColorInput = document.getElementById('bg-color');
+    const btnColorInput = document.getElementById('btn-color');
+    const imgUrlInput = document.getElementById('img-url');
+    const gameDataInput = document.getElementById('game-data');
+    const correctFeedbackInput = document.getElementById('feedback-correct');
+    const incorrectFeedbackInput = document.getElementById('feedback-incorrect');
+    const finalFeedbackInput = document.getElementById('feedback-final');
+    const generateBtn = document.getElementById('generate-btn');
+    const outputCodeTextarea = document.getElementById('output-code');
+    const outputIframeTextarea = document.getElementById('output-iframe');
+    const previewFrame = document.getElementById('preview-container');
 
-            const state = {
-                lang: languageSelector.value,
-                difficulty: difficultySelector.value,
-                tasks: tasksData,
+    // --- Функция генерации ---
+    function generateGame() {
+        // 1. Сбор данных из полей редактора
+        const bgColor = bgColorInput.value;
+        const btnColor = btnColorInput.value;
+        const imgUrl = imgUrlInput.value;
+        const correctFeedback = correctFeedbackInput.value;
+        const incorrectFeedback = incorrectFeedbackInput.value;
+        const finalFeedback = finalFeedbackInput.value;
+
+        // 2. Парсинг данных игры
+        const gameDataRaw = gameDataInput.value.trim().split('\n');
+        const gameData = gameDataRaw.map(line => {
+            if (!line.includes('|')) return null;
+            const [definition, optionsStr] = line.split('|');
+            const options = optionsStr.split(',').map(opt => opt.trim());
+            return {
+                definition: definition.trim(),
+                options: options, // Ответы в том порядке, как введены
+                answer: options[0] // Первый ответ всегда правильный
             };
-            localStorage.setItem('dictationBuilderState', JSON.stringify(state));
-        };
+        }).filter(item => item !== null); // Убираем пустые/неверные строки
 
-        const loadState = () => {
-            const savedState = localStorage.getItem('dictationBuilderState');
-            if (savedState) {
-                const state = JSON.parse(savedState);
-                languageSelector.value = state.lang || 'ru';
-                difficultySelector.value = state.difficulty || 'scramble';
-                
-                setLanguage(languageSelector.value);
+        // 3. Создание HTML-шаблона игры с подстановкой данных
+        const gameTemplate = `
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Интерактивная игра</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: ${bgColor};
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 600px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .definition {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .option {
+            padding: 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: ${btnColor};
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        .option:hover {
+            transform: scale(1.02);
+        }
+        .option.correct {
+            background-color: #28a745;
+        }
+        .option.incorrect {
+            background-color: #dc3545;
+        }
+        #feedback {
+            margin-top: 20px;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="${imgUrl}" alt="Game Image">
+        <p class="definition"></p>
+        <div class="options"></div>
+        <p id="feedback"></p>
+    </div>
 
-                if (state.tasks && state.tasks.length > 0) {
-                    taskList.innerHTML = '';
-                    state.tasks.forEach(taskData => addTaskEditor(taskData));
-                } else {
-                    addTaskEditor(); // Add one empty task if none saved
-                }
-            } else {
-                setLanguage(currentLang);
-                addTaskEditor(); // Add one empty task on first load
-            }
-        };
+    <script>
+        const gameData = ${JSON.stringify(gameData, null, 2)};
+
+        const definitionEl = document.querySelector('.definition');
+        const optionsEl = document.querySelector('.options');
+        const feedbackEl = document.getElementById('feedback');
         
-        // --- LANGUAGE AND UI FUNCTIONS ---
-        const setLanguage = (lang) => {
-            currentLang = lang;
-            const langDict = translations[lang];
-            document.querySelectorAll('[data-translate]').forEach(el => {
-                const key = el.dataset.translate;
-                if (langDict[key]) {
-                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                        el.placeholder = langDict[key];
-                    } else {
-                        el.textContent = langDict[key];
-                    }
-                }
-            });
-            difficultySelector.querySelector('[value="scramble"]').textContent = langDict.difficultyScramble;
-            difficultySelector.querySelector('[value="type"]').textContent = langDict.difficultyType;
-            document.querySelectorAll('.task-editor-item').forEach(card => updateCardLanguage(card, lang));
-        };
+        let currentQuestionIndex = 0;
 
-        const updateCardLanguage = (cardElement, lang) => {
-            const langDict = translations[lang];
-            cardElement.querySelector('.delete-task-btn').textContent = langDict.deleteBtn;
-            cardElement.querySelector('.task-type-select option[value="image"]').textContent = langDict.taskTypeImage;
-            cardElement.querySelector('.task-type-select option[value="definition"]').textContent = langDict.taskTypeDefinition;
-            cardElement.querySelector('.task-type-label').textContent = langDict.taskTypeLabel;
-            cardElement.querySelector('.content-image-group label').textContent = langDict.imageLinkLabel;
-            cardElement.querySelector('.task-content-image').placeholder = langDict.imageLinkPlaceholder;
-            cardElement.querySelector('.content-definition-group label').textContent = langDict.definitionLabel;
-            cardElement.querySelector('.task-content-definition').placeholder = langDict.definitionPlaceholder;
-            cardElement.querySelector('.task-answer-label').textContent = langDict.answerLabel;
-            cardElement.querySelector('.task-answer').placeholder = langDict.answerPlaceholder;
-            cardElement.querySelector('.task-feedback-label').textContent = langDict.feedbackLabel;
-            cardElement.querySelector('.task-feedback').placeholder = langDict.feedbackPlaceholder;
-        };
-        
-        const addTaskEditor = (data = {}) => {
-            const langDict = translations[currentLang];
-            const taskDiv = document.createElement('div');
-            taskDiv.className = 'task-editor-item';
-
-            // HTML structure for a task card
-            taskDiv.innerHTML = `
-                <button class="btn btn-danger delete-task-btn">${langDict.deleteBtn}</button>
-                <div class="field-group">
-                    <label class="task-type-label">${langDict.taskTypeLabel}</label>
-                    <select class="task-type-select">
-                        <option value="image">${langDict.taskTypeImage}</option>
-                        <option value="definition">${langDict.taskTypeDefinition}</option>
-                    </select>
-                </div>
-                <div class="field-group content-image-group">
-                    <label>${langDict.imageLinkLabel}</label>
-                    <input type="url" class="task-content-image" placeholder="${langDict.imageLinkPlaceholder}">
-                </div>
-                <div class="field-group content-definition-group" style="display: none;">
-                    <label>${langDict.definitionLabel}</label>
-                    <textarea class="task-content-definition" placeholder="${langDict.definitionPlaceholder}"></textarea>
-                </div>
-                <div class="field-group">
-                    <label class="task-answer-label">${langDict.answerLabel}</label>
-                    <input type="text" class="task-answer" placeholder="${langDict.answerPlaceholder}">
-                </div>
-                <div class="field-group">
-                    <label class="task-feedback-label">${langDict.feedbackLabel}</label>
-                    <input type="text" class="task-feedback" placeholder="${langDict.feedbackPlaceholder}">
-                </div>
-            `;
-            
-            // Populate with data if loading from state
-            const typeSelect = taskDiv.querySelector('.task-type-select');
-            const imageGroup = taskDiv.querySelector('.content-image-group');
-            const definitionGroup = taskDiv.querySelector('.content-definition-group');
-            
-            typeSelect.value = data.type || 'image';
-            taskDiv.querySelector('.task-content-image').value = data.contentImage || '';
-            taskDiv.querySelector('.task-content-definition').value = data.contentDefinition || '';
-            taskDiv.querySelector('.task-answer').value = data.answer || '';
-            taskDiv.querySelector('.task-feedback').value = data.feedback || '';
-
-            imageGroup.style.display = typeSelect.value === 'image' ? 'block' : 'none';
-            definitionGroup.style.display = typeSelect.value === 'definition' ? 'block' : 'none';
-
-            taskList.appendChild(taskDiv);
-        };
-
-        // --- EVENT LISTENERS ---
-        taskList.addEventListener('click', (e) => {
-            if (e.target.classList.contains('delete-task-btn')) {
-                e.target.closest('.task-editor-item').remove();
-                saveState();
-            }
-        });
-
-        taskList.addEventListener('change', (e) => {
-            if (e.target.classList.contains('task-type-select')) {
-                const parent = e.target.closest('.task-editor-item');
-                parent.querySelector('.content-image-group').style.display = e.target.value === 'image' ? 'block' : 'none';
-                parent.querySelector('.content-definition-group').style.display = e.target.value === 'definition' ? 'block' : 'none';
-            }
-            saveState();
-        });
-        
-        taskList.addEventListener('input', saveState);
-        difficultySelector.addEventListener('change', saveState);
-
-        languageSelector.addEventListener('change', (e) => {
-            setLanguage(e.target.value);
-            saveState();
-        });
-        
-        addTaskBtn.addEventListener('click', () => {
-            addTaskEditor();
-            saveState();
-        });
-        
-        generateCodeBtn.addEventListener('click', () => {
-            const tasks = Array.from(document.querySelectorAll('.task-editor-item')).map((item, index) => {
-                const type = item.querySelector('.task-type-select').value;
-                const content = (type === 'image') 
-                    ? item.querySelector('.task-content-image').value.trim()
-                    : item.querySelector('.task-content-definition').value.trim();
-                const answer = item.querySelector('.task-answer').value.trim();
-                const feedback = item.querySelector('.task-feedback').value.trim();
-                
-                return { id: `task_${index}`, type, content, answer, feedbackOverlayContent: feedback };
-            }).filter(task => task.content && task.answer);
-            
-            if (tasks.length === 0) {
-                alert(currentLang === 'ru' ? 'Пожалуйста, добавьте хотя бы одно валидное задание (с контентом и ответом).' : 'Please add at least one valid task (with content and an answer).');
+        function loadQuestion() {
+            if (currentQuestionIndex >= gameData.length) {
+                definitionEl.textContent = "${finalFeedback}";
+                optionsEl.innerHTML = '';
+                feedbackEl.textContent = '';
                 return;
             }
 
-            const gameConfig = { lang: currentLang, difficulty: difficultySelector.value, tasks };
-            generatedCodeTextarea.value = generateFinalHtml(gameConfig, translations);
-            outputContainer.style.display = 'block';
-            generatedCodeTextarea.select();
-        });
-        
-        copyCodeBtn.addEventListener('click', () => {
-            generatedCodeTextarea.select();
-            document.execCommand('copy');
-            copyCodeBtn.textContent = translations[currentLang].copiedBtn;
-            setTimeout(() => {
-                copyCodeBtn.textContent = translations[currentLang].copyBtn;
-            }, 2000);
-        });
+            const currentQuestion = gameData[currentQuestionIndex];
+            definitionEl.textContent = currentQuestion.definition;
+            optionsEl.innerHTML = '';
+            feedbackEl.textContent = '';
 
-        // --- INITIALIZATION ---
-        loadState();
-    });
+            // Перемешиваем варианты ответов
+            const shuffledOptions = [...currentQuestion.options].sort(() => Math.random() - 0.5);
 
-    function generateFinalHtml(config, allTranslations) {
-        const gameTranslations = {
-            gameTitle: allTranslations[config.lang].gameTitle,
-            gameImageTaskHeader: allTranslations[config.lang].gameImageTaskHeader,
-            gameDefinitionTaskHeader: allTranslations[config.lang].gameDefinitionTaskHeader,
-            gameInputPlaceholder: allTranslations[config.lang].gameInputPlaceholder,
-            gameCheckBtn: allTranslations[config.lang].gameCheckBtn,
-            gameContinueBtn: allTranslations[config.lang].gameContinueBtn,
-            gameCongratsTitle: allTranslations[config.lang].gameCongratsTitle,
-            gameCongratsText: allTranslations[config.lang].gameCongratsText,
-            gameRestartBtn: allTranslations[config.lang].gameRestartBtn,
-            correctFeedback: allTranslations[config.lang].correctFeedback,
-            incorrectFeedback: allTranslations[config.lang].incorrectFeedback,
-        };
-
-        const gameCSS = `
-        :root{--p:#4a90e2;--s:#f5a623;--c:#50e3c2;--i:#d0021b;--lb:#f9f9f9;--t:#333;--bg:rgba(0,0,0,.6);--br:12px;--sh:0 4px 15px rgba(0,0,0,.1);--ts:.3s}
-        body{font-family:Arial,sans-serif;line-height:1.6;color:var(--t);background-color:var(--lb);margin:0;padding:20px;display:flex;justify-content:center;align-items:flex-start;min-height:100vh}#aw{width:100%;max-width:1200px}h1{text-align:center;color:var(--p);margin-bottom:30px}#mgb{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px}.tc{background:#fff;border-radius:var(--br);box-shadow:var(--sh);cursor:pointer;overflow:hidden;position:relative;transition:transform var(--ts) ease,box-shadow var(--ts) ease;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px;min-height:180px;text-align:center}.tc:hover{transform:translateY(-5px);box-shadow:0 8px 25px rgba(0,0,0,.15)}.tc img{max-width:80px;height:auto;margin-bottom:15px}.tc p{margin:0;font-size:1em;color:#555}.tc.completed{filter:grayscale(80%) brightness(60%);pointer-events:none;cursor:default}.tc .to{position:absolute;top:0;left:0;width:100%;height:100%;background-color:rgba(74,144,226,.7);display:flex;justify-content:center;align-items:center;color:#fff;font-size:2.5em;font-weight:700;text-align:center;opacity:0;visibility:hidden;transition:opacity var(--ts) ease;pointer-events:none}.tc.completed .to{opacity:1;visibility:visible}.to img{max-width:90%;max-height:90%;object-fit:contain;margin:0}.mo{position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg);display:flex;justify-content:center;align-items:center;z-index:1000;backdrop-filter:blur(5px);opacity:0;visibility:hidden;transition:opacity var(--ts) ease,visibility var(--ts) ease}.mo.active{opacity:1;visibility:visible}.mc{background:#fff;padding:30px;border-radius:var(--br);box-shadow:var(--sh);width:90%;max-width:600px;text-align:center;transform:scale(.9);opacity:0;transition:transform var(--ts) ease,opacity var(--ts) ease}.mo.active .mc{transform:scale(1);opacity:1}.mh{font-size:1.8em;font-weight:700;color:var(--p)}.mb{margin:25px 0}.mb img{max-width:150px;height:auto;border-radius:8px}.mb p{font-size:1.2em;line-height:1.5;color:#555}.ai{width:calc(100% - 24px);padding:12px;border:2px solid #ddd;border-radius:var(--br);font-size:1.5em;text-align:center;text-transform:uppercase;outline:0;transition:border-color var(--ts) ease;margin-top:20px;font-family:Arial,sans-serif}.ai:focus{border-color:var(--p)}.scl{margin-top:20px}.sic{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;min-height:60px;border:2px dashed #ccc;border-radius:var(--br);padding:15px;background-color:#fafafa}.sclc{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:25px;padding:15px;border-top:1px solid #eee}.lb{background:var(--s);color:#fff;padding:12px 18px;border-radius:8px;cursor:grab;font-weight:700;font-size:1.4em;user-select:none;box-shadow:0 2px 5px rgba(0,0,0,.1);transition:background var(--ts) ease,transform var(--ts) ease}.lb:hover{transform:translateY(-2px)}.lb.dragging{opacity:.5;box-shadow:0 5px 15px rgba(0,0,0,.3)}.btn{background-color:var(--p);color:#fff;padding:12px 25px;border:none;border-radius:var(--br);cursor:pointer;font-size:1.1em;font-weight:700;transition:background-color var(--ts) ease,transform var(--ts) ease;text-decoration:none;display:inline-block;margin:5px}.btn:hover{background-color:#357abd;transform:translateY(-2px)}#cmb{background-color:var(--c)}#cmb:hover{background-color:#3dbca0}.fm{margin-top:20px;font-size:1.2em;font-weight:700;min-height:25px;transition:color var(--ts) ease}.fm.correct{color:var(--c)}.fm.incorrect{color:var(--i)}#gom .mc{border:3px solid var(--c)}#gom h2{font-size:2.5em;color:var(--c);margin-bottom:20px}#gom .btn{background-color:var(--s)}
-        `.replace(/\n\s*/g, '');
-
-        const gameJS = `
-        document.addEventListener('DOMContentLoaded', () => {
-            const gameConfig = ${JSON.stringify(config)};
-            const T = ${JSON.stringify(gameTranslations)};
-            const mainGameBoard = document.getElementById('mgb'),
-                taskModalOverlay = document.getElementById('tmo'),
-                modalTaskHeader = document.getElementById('mth'),
-                modalTaskImage = document.getElementById('mti'),
-                modalTaskDefinition = document.getElementById('mtd'),
-                answerTextInput = document.getElementById('ai'),
-                scrambleContainer = document.querySelector('.scl'),
-                sortableInputContainer = document.getElementById('sic'),
-                scrambledLettersContainer = document.getElementById('sclc'),
-                feedbackMessage = document.getElementById('fm'),
-                checkAnswerButton = document.getElementById('cab'),
-                closeModalButton = document.getElementById('cmb'),
-                gameOverModal = document.getElementById('gom');
-            let currentTask = null, draggedItem = null;
-
-            function shuffleArray(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-            function getRandomCorrectFeedback() { const m = T.correctFeedback; return m[Math.floor(Math.random() * m.length)]; }
-            function createLetterBox(l) { const e = document.createElement('div'); e.className = 'lb'; e.textContent = l; e.draggable = true; return e; }
-
-            function setupScrambleMode(answer) {
-                sortableInputContainer.innerHTML = '';
-                scrambledLettersContainer.innerHTML = '';
-                const letters = shuffleArray([...answer.toUpperCase().split('')]);
-                letters.forEach(l => scrambledLettersContainer.appendChild(createLetterBox(l)));
-            }
-
-            function openTaskModal(a) {
-                currentTask = a;
-                feedbackMessage.textContent = '';
-                feedbackMessage.className = 'fm';
-                checkAnswerButton.style.display = 'inline-block';
-                closeModalButton.style.display = 'none';
-
-                if (a.type === 'image') {
-                    modalTaskImage.src = a.content;
-                    modalTaskImage.style.display = 'block';
-                    modalTaskDefinition.style.display = 'none';
-                    modalTaskHeader.textContent = T.gameImageTaskHeader;
-                } else {
-                    modalTaskDefinition.textContent = a.content;
-                    modalTaskDefinition.style.display = 'block';
-                    modalTaskImage.style.display = 'none';
-                    modalTaskHeader.textContent = T.gameDefinitionTaskHeader;
-                }
-
-                if (gameConfig.difficulty === 'type') {
-                    answerTextInput.value = '';
-                    answerTextInput.style.display = 'block';
-                    scrambleContainer.style.display = 'none';
-                    answerTextInput.focus();
-                } else {
-                    answerTextInput.style.display = 'none';
-                    scrambleContainer.style.display = 'block';
-                    setupScrambleMode(a.answer);
-                }
-                taskModalOverlay.classList.add('active');
-            }
-
-            function closeTaskModal() { taskModalOverlay.classList.remove('active'); checkGameCompletion(); }
-
-            function checkAnswer() {
-                if (!currentTask) return;
-                let userAnswer = gameConfig.difficulty === 'type' ? answerTextInput.value.toUpperCase().trim() : Array.from(sortableInputContainer.children).map(e => e.textContent).join('');
-                if (userAnswer === currentTask.answer.toUpperCase().trim()) {
-                    feedbackMessage.textContent = getRandomCorrectFeedback();
-                    feedbackMessage.className = 'fm correct';
-                    checkAnswerButton.style.display = 'none';
-                    closeModalButton.style.display = 'inline-block';
-                    currentTask.isCompleted = true;
-                    markTaskAsCompleted(currentTask);
-                } else {
-                    feedbackMessage.textContent = T.incorrectFeedback;
-                    feedbackMessage.className = 'fm incorrect';
-                }
-            }
-
-            function markTaskAsCompleted(task) {
-                const taskCard = document.getElementById(task.id);
-                if (!taskCard) return;
-                taskCard.classList.add('completed');
-                const overlay = taskCard.querySelector('.to');
-                const feedbackContent = task.feedbackOverlayContent;
-                if (feedbackContent) {
-                    if (feedbackContent.startsWith('http')) {
-                        overlay.innerHTML = \`<img src="\${feedbackContent}" alt="feedback">\`;
-                    } else {
-                        overlay.textContent = feedbackContent;
-                    }
-                } else {
-                    overlay.textContent = '✔'; // Default checkmark if feedback is empty
-                }
-            }
-
-            function checkGameCompletion() { if (gameConfig.tasks.every(a => a.isCompleted)) { setTimeout(() => gameOverModal.classList.add('active'), 500); } }
-
-            function initializeGameElements() {
-                document.querySelector('#aw h1').textContent = T.gameTitle;
-                checkAnswerButton.textContent = T.gameCheckBtn;
-                closeModalButton.textContent = T.gameContinueBtn;
-                answerTextInput.placeholder = T.gameInputPlaceholder;
-                const g = gameOverModal.querySelector('.mc');
-                g.querySelector('h2').textContent = T.gameCongratsTitle;
-                g.querySelector('p').textContent = T.gameCongratsText;
-                g.querySelector('button').textContent = T.gameRestartBtn;
-                g.querySelector('button').onclick = () => location.reload();
-
-                gameConfig.tasks.forEach(a => {
-                    a.isCompleted = false;
-                    const t = document.createElement('div');
-                    t.className = 'tc';
-                    t.id = a.id;
-                    if (a.type === 'image') {
-                        const img = document.createElement('img');
-                        img.src = a.content;
-                        img.alt = "";
-                        t.appendChild(img);
-                    } else {
-                        const p = document.createElement('p');
-                        p.textContent = a.content;
-                        t.appendChild(p);
-                    }
-                    const overlay = document.createElement('div');
-                    overlay.className = 'to';
-                    t.appendChild(overlay);
-
-                    t.addEventListener('click', () => { if (!a.isCompleted) openTaskModal(a); });
-                    mainGameBoard.appendChild(t);
-                });
-            }
-
-            checkAnswerButton.addEventListener('click', checkAnswer);
-            closeModalButton.addEventListener('click', closeTaskModal);
-            answerTextInput.addEventListener('keypress', e => { if (e.key === 'Enter') checkAnswer(); });
-
-            function getDragAfterElement(container, y) {
-                const draggableElements = [...container.querySelectorAll('.lb:not(.dragging)')];
-                return draggableElements.reduce((closest, child) => {
-                    const box = child.getBoundingClientRect();
-                    const offset = y - box.top - box.height / 2;
-                    if (offset < 0 && offset > closest.offset) {
-                        return { offset: offset, element: child };
-                    } else {
-                        return closest;
-                    }
-                }, { offset: Number.NEGATIVE_INFINITY }).element;
-            }
-
-            [sortableInputContainer, scrambledLettersContainer].forEach(container => {
-                container.addEventListener('dragstart', e => { if (e.target.classList.contains('lb')) { draggedItem = e.target; setTimeout(() => draggedItem.classList.add('dragging'), 0); } });
-                container.addEventListener('dragend', () => { if (draggedItem) { draggedItem.classList.remove('dragging'); draggedItem = null; } });
-                container.addEventListener('dragover', e => { e.preventDefault(); const afterElement = getDragAfterElement(container, e.clientY); if (afterElement == null) { container.appendChild(draggedItem); } else { container.insertBefore(draggedItem, afterElement); } });
+            shuffledOptions.forEach(optionText => {
+                const button = document.createElement('button');
+                button.textContent = optionText;
+                button.classList.add('option');
+                button.addEventListener('click', () => checkAnswer(optionText, button));
+                optionsEl.appendChild(button);
             });
+        }
 
-            initializeGameElements();
-        });
-        `.replace(/\n\s*/g, '');
+        function checkAnswer(selectedOption, button) {
+            const correctAnswer = gameData[currentQuestionIndex].answer;
+            const allButtons = optionsEl.querySelectorAll('.option');
+            
+            allButtons.forEach(btn => btn.disabled = true); // Блокируем кнопки после ответа
 
-        return `
-<!DOCTYPE html>
-<html lang="${config.lang}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${gameTranslations.gameTitle}</title>
-    <style>${gameCSS}</style>
-</head>
-<body>
-    <div id="aw"><h1></h1><div id="mgb"></div></div>
-    <div id="tmo" class="mo"><div class="mc"><div id="mth" class="mh"></div><div class="mb"><img id="mti" src="" alt="" style="display:none"><p id="mtd" style="display:none"></p><input type="text" id="ai" class="ai" style="display:none"><div class="scl" style="display:none"><div id="sic" class="sic"></div><div id="sclc" class="sclc"></div></div></div><div id="fm" class="fm"></div><div class="mf"><button id="cab" class="btn"></button><button id="cmb" class="btn" style="display:none"></button></div></div></div>
-    <div id="gom" class="mo"><div class="mc"><h2></h2><p></p><button class="btn"></button></div></div>
-    <script>${gameJS}</script>
+            if (selectedOption === correctAnswer) {
+                feedbackEl.textContent = "${correctFeedback}";
+                feedbackEl.style.color = 'green';
+                button.classList.add('correct');
+                
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    loadQuestion();
+                }, 1500);
+
+            } else {
+                feedbackEl.textContent = "${incorrectFeedback}";
+                feedbackEl.style.color = 'red';
+                button.classList.add('incorrect');
+                
+                // Показываем правильный ответ
+                allButtons.forEach(btn => {
+                    if (btn.textContent === correctAnswer) {
+                        btn.classList.add('correct');
+                    }
+                });
+
+                setTimeout(() => {
+                    // Не переходим к следующему вопросу, а перезагружаем текущий
+                    loadQuestion();
+                }, 2000);
+            }
+        }
+
+        loadQuestion();
+    <\/script>
 </body>
-</html>`;
+</html>
+        `;
+
+        // 4. Вывод результатов
+        outputCodeTextarea.value = gameTemplate.trim();
+        const iframeCode = `<iframe srcdoc="${gameTemplate.replace(/"/g, '&quot;')}" width="100%" height="600" style="border:none;"></iframe>`;
+        outputIframeTextarea.value = iframeCode;
+
+        // 5. Обновление превью
+        previewFrame.srcdoc = gameTemplate;
     }
-    </script>
+
+    // --- Назначение событий ---
+    generateBtn.addEventListener('click', generateGame);
+
+    // --- Первичная генерация при загрузке страницы ---
+    window.addEventListener('load', generateGame);
+</script>
+
 </body>
 </html>

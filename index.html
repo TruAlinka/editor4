@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Редактор Игры "Найди Определение"</title>
+    <title id="page-title">Редактор Игры "Найди Определение"</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -12,6 +12,7 @@
             padding: 20px;
             background-color: #f4f4f9;
             color: #333;
+            min-height: 100vh;
         }
         .editor, .preview {
             flex: 1;
@@ -19,11 +20,21 @@
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            overflow-y: auto;
         }
-        h1, h2 {
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             border-bottom: 2px solid #e0e0e0;
             padding-bottom: 10px;
         }
+        h1, h2 {
+            margin: 0;
+            padding: 0;
+            border-bottom: none;
+        }
+        h2 { margin-top: 20px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
         label {
             display: block;
             margin-top: 15px;
@@ -38,7 +49,7 @@
             font-size: 16px;
         }
         textarea {
-            height: 150px;
+            height: 200px;
             resize: vertical;
         }
         .color-inputs { display: flex; gap: 20px; align-items: center; }
@@ -49,8 +60,7 @@
             padding: 0;
             cursor: pointer;
         }
-        button {
-            display: block;
+        #generate-btn {
             width: 100%;
             padding: 15px;
             background-color: #007bff;
@@ -61,11 +71,22 @@
             cursor: pointer;
             margin-top: 20px;
         }
-        button:hover {
+        #generate-btn:hover {
             background-color: #0056b3;
         }
+        #lang-toggle {
+            padding: 8px 12px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #lang-toggle:hover {
+            background-color: #5a6268;
+        }
         #output-code {
-            height: 200px;
             font-family: monospace;
             white-space: pre;
             background-color: #2d2d2d;
@@ -73,7 +94,7 @@
         }
         #preview-container {
             width: 100%;
-            height: 600px;
+            height: 650px;
             border: 1px solid #ccc;
             border-radius: 4px;
         }
@@ -81,101 +102,177 @@
             font-size: 14px;
             color: #666;
             margin-top: 5px;
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
         }
     </style>
 </head>
 <body>
 
     <div class="editor">
-        <h1>Редактор Игры</h1>
+        <div class="editor-header">
+            <h1 id="editor-title">Редактор Игры</h1>
+            <button id="lang-toggle">EN</button>
+        </div>
 
-        <h2>1. Настройки внешнего вида</h2>
+        <h2 id="section-appearance">1. Настройки внешнего вида</h2>
         <div class="color-inputs">
             <div>
-                <label for="bg-color">Цвет фона:</label>
+                <label for="bg-color" id="label-bg-color">Цвет фона:</label>
                 <input type="color" id="bg-color" value="#f0f8ff">
             </div>
             <div>
-                <label for="btn-color">Цвет кнопок:</label>
+                <label for="btn-color" id="label-btn-color">Цвет кнопок:</label>
                 <input type="color" id="btn-color" value="#4CAF50">
             </div>
         </div>
-
-        <label for="img-url">Ссылка на изображение:</label>
-        <input type="url" id="img-url" placeholder="https://example.com/image.jpg" value="https://i.ibb.co/L5hP9Vj/plant.png">
         
-        <h2>2. Содержимое игры</h2>
-        <label for="game-data">Дефиниции и ответы:</label>
-        <div class="help-text">
+        <h2 id="section-content">2. Содержимое игры</h2>
+        <label for="game-data" id="label-game-data">Дефиниции и ответы:</label>
+        <div class="help-text" id="help-text">
             Каждая строка — один раунд. Формат: <br>
-            <b>Вопрос? | Правильный ответ, Вариант 2, Вариант 3</b>
+            <b>Вопрос? | Правильный ответ, Вариант 2 | Ссылка на картинку (необязательно)</b>
         </div>
-        <textarea id="game-data" placeholder="Пример: Столица Франции? | Париж, Лондон, Берлин">Что отвечает за фотосинтез в клетках растений? | Хлорофилл, Митохондрия, Ядро
-Самая большая планета в Солнечной системе? | Юпитер, Сатурн, Земля</textarea>
+        <textarea id="game-data" placeholder="Пример: Столица Франции? | Париж, Лондон, Берлин | https://example.com/eiffel.png">Что отвечает за фотосинтез? | Хлорофилл, Митохондрия, Ядро | https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Chloroplast_in_leaf_of_Anemone_sp._TEM_30000x.jpg/320px-Chloroplast_in_leaf_of_Anemone_sp._TEM_30000x.jpg
+Самая большая планета? | Юпитер, Сатурн, Земля | https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Jupiter_and_its_shrunken_Great_Red_Spot.jpg/320px-Jupiter_and_its_shrunken_Great_Red_Spot.jpg
+Химический символ золота? | Au, Ag, Fe |</textarea>
 
-        <h2>3. Обратная связь</h2>
-        <label for="feedback-correct">Текст при верном ответе:</label>
+        <h2 id="section-feedback">3. Обратная связь</h2>
+        <label for="feedback-correct" id="label-feedback-correct">Текст при верном ответе:</label>
         <input type="text" id="feedback-correct" value="Верно! Отлично!">
         
-        <label for="feedback-incorrect">Текст при неверном ответе:</label>
+        <label for="feedback-incorrect" id="label-feedback-incorrect">Текст при неверном ответе:</label>
         <input type="text" id="feedback-incorrect" value="Попробуй еще раз.">
         
-        <label for="feedback-final">Текст по завершении игры:</label>
+        <label for="feedback-final" id="label-feedback-final">Текст по завершении игры:</label>
         <input type="text" id="feedback-final" value="Игра окончена! Вы молодец!">
 
         <button id="generate-btn">Сгенерировать код и обновить превью</button>
 
-        <h2>4. Готовый код</h2>
-        <label for="output-iframe">Код для вставки на сайт (iframe):</label>
+        <h2 id="section-code">4. Готовый код</h2>
+        <label for="output-iframe" id="label-output-iframe">Код для вставки на сайт (iframe):</label>
         <textarea id="output-iframe" readonly></textarea>
         
-        <label for="output-code">Полный HTML-код игры:</label>
+        <label for="output-code" id="label-output-code">Полный HTML-код игры:</label>
         <textarea id="output-code" readonly></textarea>
     </div>
 
     <div class="preview">
-        <h1>Превью Игры</h1>
+        <h1 id="preview-title">Превью Игры</h1>
         <iframe id="preview-container" title="Превью игры"></iframe>
     </div>
 
 <script>
+    // --- Словарь для перевода интерфейса ---
+    const translations = {
+        ru: {
+            pageTitle: 'Редактор Игры "Найди Определение"',
+            editorTitle: 'Редактор Игры',
+            previewTitle: 'Превью Игры',
+            sectionAppearance: '1. Настройки внешнего вида',
+            labelBgColor: 'Цвет фона:',
+            labelBtnColor: 'Цвет кнопок:',
+            sectionContent: '2. Содержимое игры',
+            labelGameData: 'Дефиниции и ответы:',
+            helpText: 'Каждая строка — один раунд. Формат: <br><b>Вопрос? | Правильный ответ, Вариант 2 | Ссылка на картинку (необязательно)</b>',
+            gameDataPlaceholder: 'Пример: Столица Франции? | Париж, Лондон, Берлин | https://example.com/eiffel.png',
+            sectionFeedback: '3. Обратная связь',
+            labelFeedbackCorrect: 'Текст при верном ответе:',
+            labelFeedbackIncorrect: 'Текст при неверном ответе:',
+            labelFeedbackFinal: 'Текст по завершении игры:',
+            generateBtn: 'Сгенерировать код и обновить превью',
+            sectionCode: '4. Готовый код',
+            labelOutputIframe: 'Код для вставки на сайт (iframe):',
+            labelOutputCode: 'Полный HTML-код игры:',
+        },
+        en: {
+            pageTitle: 'Game Editor "Find the Definition"',
+            editorTitle: 'Game Editor',
+            previewTitle: 'Game Preview',
+            sectionAppearance: '1. Appearance Settings',
+            labelBgColor: 'Background Color:',
+            labelBtnColor: 'Buttons Color:',
+            sectionContent: '2. Game Content',
+            labelGameData: 'Definitions and Answers:',
+            helpText: 'Each line is one round. Format: <br><b>Question? | Correct Answer, Option 2 | Image URL (optional)</b>',
+            gameDataPlaceholder: 'Example: Capital of France? | Paris, London, Berlin | https://example.com/eiffel.png',
+            sectionFeedback: '3. Feedback Text',
+            labelFeedbackCorrect: 'Text for correct answer:',
+            labelFeedbackIncorrect: 'Text for incorrect answer:',
+            labelFeedbackFinal: 'Text for game completion:',
+            generateBtn: 'Generate Code & Update Preview',
+            sectionCode: '4. Resulting Code',
+            labelOutputIframe: 'Code for website embedding (iframe):',
+            labelOutputCode: 'Full HTML code of the game:',
+        }
+    };
+
+    let currentLang = 'ru';
+
+    // --- Функция смены языка ---
+    function setLanguage(lang) {
+        currentLang = lang;
+        const t = translations[lang];
+        document.getElementById('page-title').textContent = t.pageTitle;
+        document.getElementById('editor-title').textContent = t.editorTitle;
+        document.getElementById('preview-title').textContent = t.previewTitle;
+        document.getElementById('section-appearance').textContent = t.sectionAppearance;
+        document.getElementById('label-bg-color').textContent = t.labelBgColor;
+        document.getElementById('label-btn-color').textContent = t.labelBtnColor;
+        document.getElementById('section-content').textContent = t.sectionContent;
+        document.getElementById('label-game-data').textContent = t.labelGameData;
+        document.getElementById('help-text').innerHTML = t.helpText;
+        document.getElementById('game-data').placeholder = t.gameDataPlaceholder;
+        document.getElementById('section-feedback').textContent = t.sectionFeedback;
+        document.getElementById('label-feedback-correct').textContent = t.labelFeedbackCorrect;
+        document.getElementById('label-feedback-incorrect').textContent = t.labelFeedbackIncorrect;
+        document.getElementById('label-feedback-final').textContent = t.labelFeedbackFinal;
+        document.getElementById('generate-btn').textContent = t.generateBtn;
+        document.getElementById('section-code').textContent = t.sectionCode;
+        document.getElementById('label-output-iframe').textContent = t.labelOutputIframe;
+        document.getElementById('label-output-code').textContent = t.labelOutputCode;
+        document.getElementById('lang-toggle').textContent = lang === 'ru' ? 'EN' : 'RU';
+    }
+
     // --- Элементы управления редактора ---
     const bgColorInput = document.getElementById('bg-color');
     const btnColorInput = document.getElementById('btn-color');
-    const imgUrlInput = document.getElementById('img-url');
     const gameDataInput = document.getElementById('game-data');
     const correctFeedbackInput = document.getElementById('feedback-correct');
     const incorrectFeedbackInput = document.getElementById('feedback-incorrect');
     const finalFeedbackInput = document.getElementById('feedback-final');
     const generateBtn = document.getElementById('generate-btn');
+    const langToggleBtn = document.getElementById('lang-toggle');
     const outputCodeTextarea = document.getElementById('output-code');
     const outputIframeTextarea = document.getElementById('output-iframe');
     const previewFrame = document.getElementById('preview-container');
 
     // --- Функция генерации ---
     function generateGame() {
-        // 1. Сбор данных из полей редактора
         const bgColor = bgColorInput.value;
         const btnColor = btnColorInput.value;
-        const imgUrl = imgUrlInput.value;
         const correctFeedback = correctFeedbackInput.value;
         const incorrectFeedback = incorrectFeedbackInput.value;
         const finalFeedback = finalFeedbackInput.value;
 
-        // 2. Парсинг данных игры
         const gameDataRaw = gameDataInput.value.trim().split('\n');
         const gameData = gameDataRaw.map(line => {
-            if (!line.includes('|')) return null;
-            const [definition, optionsStr] = line.split('|');
-            const options = optionsStr.split(',').map(opt => opt.trim());
-            return {
-                definition: definition.trim(),
-                options: options, // Ответы в том порядке, как введены
-                answer: options[0] // Первый ответ всегда правильный
-            };
-        }).filter(item => item !== null); // Убираем пустые/неверные строки
+            const parts = line.split('|');
+            if (parts.length < 2 || !parts[0].trim() || !parts[1].trim()) return null;
+            
+            const definition = parts[0].trim();
+            const options = parts[1].split(',').map(opt => opt.trim());
+            const imageUrl = parts.length > 2 ? parts[2].trim() : ''; // Картинка - необязательная третья часть
 
-        // 3. Создание HTML-шаблона игры с подстановкой данных
+            return {
+                definition,
+                options,
+                answer: options[0], // Первый ответ всегда правильный
+                imageUrl
+            };
+        }).filter(item => item !== null);
+
         const gameTemplate = `
 <!DOCTYPE html>
 <html lang="ru">
@@ -183,70 +280,21 @@
     <meta charset="UTF-8">
     <title>Интерактивная игра</title>
     <style>
-        body {
-            font-family: sans-serif;
-            background-color: ${bgColor};
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            color: #333;
-        }
-        .container {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
-            text-align: center;
-            width: 90%;
-            max-width: 600px;
-        }
-        img {
-            max-width: 100%;
-            height: auto;
-            max-height: 200px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        .definition {
-            font-size: 1.2em;
-            margin-bottom: 20px;
-        }
-        .options {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .option {
-            padding: 15px;
-            border: none;
-            border-radius: 5px;
-            background-color: ${btnColor};
-            color: white;
-            font-size: 1em;
-            cursor: pointer;
-            transition: transform 0.2s, background-color 0.2s;
-        }
-        .option:hover {
-            transform: scale(1.02);
-        }
-        .option.correct {
-            background-color: #28a745;
-        }
-        .option.incorrect {
-            background-color: #dc3545;
-        }
-        #feedback {
-            margin-top: 20px;
-            font-size: 1.1em;
-            font-weight: bold;
-        }
+        body { font-family: sans-serif; background-color: ${bgColor}; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; color: #333; }
+        .container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 600px; }
+        #game-image { max-width: 100%; height: auto; max-height: 200px; border-radius: 8px; margin-bottom: 20px; object-fit: cover; }
+        .definition { font-size: 1.2em; margin-bottom: 20px; }
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .option { padding: 15px; border: none; border-radius: 5px; background-color: ${btnColor}; color: white; font-size: 1em; cursor: pointer; transition: transform 0.2s, background-color 0.2s; }
+        .option:hover { transform: scale(1.02); }
+        .option.correct { background-color: #28a745 !important; }
+        .option.incorrect { background-color: #dc3545 !important; }
+        #feedback { margin-top: 20px; font-size: 1.1em; font-weight: bold; min-height: 1.2em; }
     </style>
 </head>
 <body>
     <div class="container">
-        <img src="${imgUrl}" alt="Game Image">
+        <img id="game-image" src="" alt="Game Image">
         <p class="definition"></p>
         <div class="options"></div>
         <p id="feedback"></p>
@@ -254,11 +302,10 @@
 
     <script>
         const gameData = ${JSON.stringify(gameData, null, 2)};
-
         const definitionEl = document.querySelector('.definition');
         const optionsEl = document.querySelector('.options');
         const feedbackEl = document.getElementById('feedback');
-        
+        const imageEl = document.getElementById('game-image');
         let currentQuestionIndex = 0;
 
         function loadQuestion() {
@@ -266,6 +313,7 @@
                 definitionEl.textContent = "${finalFeedback}";
                 optionsEl.innerHTML = '';
                 feedbackEl.textContent = '';
+                imageEl.style.display = 'none';
                 return;
             }
 
@@ -274,9 +322,14 @@
             optionsEl.innerHTML = '';
             feedbackEl.textContent = '';
 
-            // Перемешиваем варианты ответов
-            const shuffledOptions = [...currentQuestion.options].sort(() => Math.random() - 0.5);
+            if (currentQuestion.imageUrl) {
+                imageEl.src = currentQuestion.imageUrl;
+                imageEl.style.display = 'block';
+            } else {
+                imageEl.style.display = 'none';
+            }
 
+            const shuffledOptions = [...currentQuestion.options].sort(() => Math.random() - 0.5);
             shuffledOptions.forEach(optionText => {
                 const button = document.createElement('button');
                 button.textContent = optionText;
@@ -289,35 +342,24 @@
         function checkAnswer(selectedOption, button) {
             const correctAnswer = gameData[currentQuestionIndex].answer;
             const allButtons = optionsEl.querySelectorAll('.option');
-            
-            allButtons.forEach(btn => btn.disabled = true); // Блокируем кнопки после ответа
+            allButtons.forEach(btn => btn.disabled = true);
 
             if (selectedOption === correctAnswer) {
                 feedbackEl.textContent = "${correctFeedback}";
                 feedbackEl.style.color = 'green';
                 button.classList.add('correct');
-                
                 setTimeout(() => {
                     currentQuestionIndex++;
                     loadQuestion();
                 }, 1500);
-
             } else {
                 feedbackEl.textContent = "${incorrectFeedback}";
                 feedbackEl.style.color = 'red';
                 button.classList.add('incorrect');
-                
-                // Показываем правильный ответ
                 allButtons.forEach(btn => {
-                    if (btn.textContent === correctAnswer) {
-                        btn.classList.add('correct');
-                    }
+                    if (btn.textContent === correctAnswer) btn.classList.add('correct');
                 });
-
-                setTimeout(() => {
-                    // Не переходим к следующему вопросу, а перезагружаем текущий
-                    loadQuestion();
-                }, 2000);
+                setTimeout(loadQuestion, 2000);
             }
         }
 
@@ -327,20 +369,24 @@
 </html>
         `;
 
-        // 4. Вывод результатов
         outputCodeTextarea.value = gameTemplate.trim();
-        const iframeCode = `<iframe srcdoc="${gameTemplate.replace(/"/g, '&quot;')}" width="100%" height="600" style="border:none;"></iframe>`;
+        const iframeCode = `<iframe srcdoc="${gameTemplate.replace(/"/g, '&quot;')}" width="100%" height="650" style="border:none;" title="Interactive Game"></iframe>`;
         outputIframeTextarea.value = iframeCode;
 
-        // 5. Обновление превью
         previewFrame.srcdoc = gameTemplate;
     }
 
     // --- Назначение событий ---
     generateBtn.addEventListener('click', generateGame);
+    langToggleBtn.addEventListener('click', () => {
+        setLanguage(currentLang === 'ru' ? 'en' : 'ru');
+    });
 
-    // --- Первичная генерация при загрузке страницы ---
-    window.addEventListener('load', generateGame);
+    // --- Первичная генерация и установка языка при загрузке страницы ---
+    window.addEventListener('load', () => {
+        setLanguage('ru');
+        generateGame();
+    });
 </script>
 
 </body>

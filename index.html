@@ -1,806 +1,346 @@
-<style>
-    /* 
-    ==============================
-    CSS СТИЛИ ДЛЯ ИГРЫ
-    ==============================
-    */
-    :root {
-        --primary-color: #4CAF50; /* Зеленый */
-        --secondary-color: #FFC107; /* Желтый */
-        --text-color: #333;
-        --background-color: rgba(0, 0, 0, 0.7);
-        --card-bg-color: #f0f8ff; /* AliceBlue */
-        --border-radius: 12px;
-        --shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    }
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Конструктор диктанта</title>
+    <style>
+        /* Стили остались прежними для сохранения внешнего вида */
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
+        :root { --primary-color: #4a90e2; --secondary-color: #f5a623; --correct-color: #50e3c2; --danger-color: #d0021b; --light-bg-color: #f9f9f9; --text-color: #333; --border-radius: 8px; --shadow: 0 4px 15px rgba(0, 0, 0, 0.1); --transition-speed: 0.3s; }
+        body { font-family: 'Montserrat', sans-serif; background-color: var(--light-bg-color); color: var(--text-color); margin: 0; padding: 25px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        #editor-container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: var(--border-radius); box-shadow: var(--shadow); }
+        h1, h2, h3 { color: var(--primary-color); text-align: center; }
+        .control-group { margin-bottom: 25px; padding: 20px; border: 1px solid #e0e0e0; border-radius: var(--border-radius); }
+        label { display: block; font-weight: 600; margin-bottom: 8px; }
+        input[type="text"], input[type="url"], select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; box-sizing: border-box; transition: border-color var(--transition-speed); }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary-color); }
+        textarea { resize: vertical; min-height: 80px; }
+        .btn { background-color: var(--primary-color); color: white; padding: 12px 20px; border: none; border-radius: var(--border-radius); cursor: pointer; font-size: 1em; font-weight: 600; transition: background-color var(--transition-speed), transform var(--transition-speed); text-decoration: none; display: inline-block; }
+        .btn:hover { transform: translateY(-2px); }
+        .btn.btn-add { background-color: var(--correct-color); margin-top: 15px; display: block; width: 100%; }
+        .btn.btn-danger { background-color: var(--danger-color); padding: 8px 12px; font-size: 0.9em; }
+        .btn.btn-main-action { width: 100%; padding: 15px; font-size: 1.2em; margin-top: 20px; }
+        .task-editor-item { background: #fafafa; padding: 20px; border-radius: var(--border-radius); margin-bottom: 15px; border: 1px solid #e0e0e0; position: relative; }
+        .task-editor-item .field-group { margin-bottom: 15px; }
+        .task-editor-item .delete-task-btn { position: absolute; top: 15px; right: 15px; }
+        #output-container { margin-top: 30px; display: none; }
+        #generated-code { width: 100%; height: 250px; font-family: monospace; font-size: 0.9em; border: 1px solid #ccc; border-radius: 4px; padding: 10px; box-sizing: border-box; background: #2d2d2d; color: #f0f0f0; }
+        .copy-button { margin-top: 10px; background-color: var(--secondary-color); }
+        .instructions { background-color: #eef7ff; border-left: 5px solid var(--primary-color); padding: 15px; margin: 20px 0; border-radius: 4px; }
+        .top-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
 
-    body {
-        font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-        line-height: 1.6;
-        color: var(--text-color);
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-    }
-
-    /* Модальное окно для задания */
-    .modal-overlay {
-        display: none; /* Скрыто по умолчанию */
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: var(--background-color);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-        backdrop-filter: blur(5px);
-        -webkit-backdrop-filter: blur(5px);
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.3s ease, visibility 0.3s ease;
-    }
-
-    .modal-overlay.active {
-        opacity: 1;
-        visibility: visible;
-    }
-
-    .modal-content {
-        background: white;
-        padding: 30px;
-        border-radius: var(--border-radius);
-        box-shadow: var(--shadow);
-        width: 90%;
-        max-width: 600px;
-        text-align: center;
-        position: relative;
-        transform: translateY(-20px);
-        opacity: 0;
-        transition: transform 0.3s ease, opacity 0.3s ease;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    .modal-overlay.active .modal-content {
-        transform: translateY(0);
-        opacity: 1;
-    }
-
-    .modal-header {
-        font-size: 1.5em;
-        font-weight: bold;
-        margin-bottom: 15px;
-        color: var(--primary-color);
-    }
-
-    .modal-body {
-        margin-bottom: 20px;
-    }
-
-    .modal-body img {
-        max-width: 100%;
-        height: auto;
-        border-radius: 8px;
-        border: 1px solid #eee;
-    }
-
-    .modal-body p {
-        font-size: 1.1em;
-        line-height: 1.5;
-        color: #555;
-    }
-
-    /* Инпут для ответа */
-    .answer-input {
-        width: calc(100% - 20px);
-        padding: 12px;
-        border: 2px solid #ddd;
-        border-radius: var(--border-radius);
-        font-size: 1.2em;
-        text-align: center;
-        text-transform: uppercase;
-        outline: none;
-        transition: border-color 0.3s ease;
-    }
-
-    .answer-input:focus {
-        border-color: var(--primary-color);
-    }
-
-    /* Контейнер для перемешиваемых букв */
-    .scrambled-letters-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 8px;
-        margin-top: 20px;
-    }
-
-    .scrambled-letter {
-        background: var(--secondary-color);
-        color: white;
-        padding: 10px 15px;
-        border-radius: 8px;
-        cursor: grab;
-        font-weight: bold;
-        font-size: 1.1em;
-        user-select: none;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        transition: background 0.2s ease, transform 0.2s ease;
-    }
-
-    .scrambled-letter:hover {
-        background: #e0a800; /* Darker yellow */
-        transform: translateY(-2px);
-    }
-
-    .scrambled-letter.dragging {
-        opacity: 0.7;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    }
-
-    /* Кнопки */
-    .btn {
-        background-color: var(--primary-color);
-        color: white;
-        padding: 12px 25px;
-        border: none;
-        border-radius: var(--border-radius);
-        cursor: pointer;
-        font-size: 1.1em;
-        font-weight: bold;
-        transition: background-color 0.3s ease, transform 0.2s ease;
-        margin-top: 20px;
-        text-decoration: none; /* Для ссылки-кнопки */
-        display: inline-block;
-    }
-
-    .btn:hover {
-        background-color: #43A047; /* Darker green */
-        transform: translateY(-2px);
-    }
-
-    .btn:active {
-        transform: translateY(0);
-    }
-
-    /* Фидбек */
-    .feedback-message {
-        margin-top: 20px;
-        font-size: 1.2em;
-        font-weight: bold;
-        color: var(--primary-color);
-        display: none; /* Скрыто по умолчанию */
-        animation: fadeIn 0.5s ease-out;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Оверлей после выполнения задания */
-    .task-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.6); /* Затемнение */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border-radius: var(--border-radius); /* Если элемент Genially имеет скругление */
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.5s ease, visibility 0.5s ease;
-        color: white;
-        font-size: 1.8em;
-        font-weight: bold;
-        text-align: center;
-        flex-direction: column;
-        gap: 10px;
-        overflow: hidden; /* Чтобы гифка не выходила за границы */
-    }
-
-    .task-overlay.completed {
-        opacity: 1;
-        visibility: visible;
-    }
-
-    .task-overlay img.feedback-gif {
-        max-width: 80%;
-        max-height: 80%;
-        border-radius: 8px;
-        object-fit: contain;
-    }
-
-    /* Стили для drag-and-drop */
-    .sortable-input-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 5px;
-        min-height: 50px; /* Чтобы контейнер не схлопывался */
-        border: 2px dashed #ccc;
-        border-radius: var(--border-radius);
-        padding: 10px;
-        margin-top: 15px;
-    }
-
-    .sortable-input-letter {
-        background: #e0e0e0; /* Светло-серый */
-        color: var(--text-color);
-        padding: 8px 12px;
-        border-radius: 6px;
-        cursor: grab;
-        font-weight: bold;
-        font-size: 1.1em;
-        user-select: none;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        transition: background 0.2s ease, transform 0.2s ease;
-    }
-
-    .sortable-input-letter:hover {
-        background: #d0d0d0;
-        transform: translateY(-1px);
-    }
-
-    .sortable-input-letter.dragging {
-        opacity: 0.7;
-    }
-
-    .placeholder {
-        border: 1px dashed var(--primary-color);
-        background-color: rgba(var(--primary-color), 0.1);
-        min-width: 40px; /* Ширина для плейсхолдера */
-        height: 40px;
-        margin: 5px;
-        border-radius: 6px;
-    }
-
-    /* Стили для элементов Genially, которые становятся затемненными */
-    .genially-task-completed {
-        filter: grayscale(80%) brightness(50%);
-        transition: filter 0.5s ease;
-        pointer-events: none; /* Нельзя кликнуть после выполнения */
-    }
-
-    /* Финальное окно победы */
-    .game-over-modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: var(--background-color);
-        justify-content: center;
-        align-items: center;
-        z-index: 1001;
-        backdrop-filter: blur(5px);
-        -webkit-backdrop-filter: blur(5px);
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.3s ease, visibility 0.3s ease;
-    }
-    .game-over-modal.active {
-        opacity: 1;
-        visibility: visible;
-        display: flex; /* Показать, когда активно */
-    }
-
-    .game-over-content {
-        background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
-        padding: 40px;
-        border-radius: var(--border-radius);
-        box-shadow: var(--shadow);
-        text-align: center;
-        width: 90%;
-        max-width: 500px;
-        transform: scale(0.8);
-        opacity: 0;
-        transition: transform 0.3s ease, opacity 0.3s ease;
-        border: 2px solid var(--primary-color);
-    }
-    .game-over-modal.active .game-over-content {
-        transform: scale(1);
-        opacity: 1;
-    }
-    .game-over-content h2 {
-        color: var(--primary-color);
-        font-size: 2.5em;
-        margin-bottom: 20px;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-    }
-    .game-over-content p {
-        font-size: 1.3em;
-        color: #555;
-        margin-bottom: 30px;
-    }
-    .game-over-content .btn {
-        background-color: var(--secondary-color);
-        color: white;
-        font-size: 1.2em;
-        padding: 15px 30px;
-    }
-    .game-over-content .btn:hover {
-        background-color: #e0a800;
-    }
-
-</style>
-
-<div id="game-container">
-    <!-- Модальное окно для отображения задания и ввода/перетаскивания ответа -->
-    <div id="taskModalOverlay" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header" id="modalTaskHeader">Собери слово!</div>
-            <div class="modal-body">
-                <img id="modalTaskImage" src="" alt="Task Image" style="display: none;">
-                <p id="modalTaskDefinition" style="display: none;"></p>
-
-                <!-- Блок для ввода текста (сложность: type) -->
-                <input type="text" id="answerTextInput" class="answer-input" placeholder="Введите слово" style="display: none;">
-
-                <!-- Блок для перетаскивания букв (сложность: scramble) -->
-                <div id="sortableInputContainer" class="sortable-input-container" style="display: none;"></div>
-                <div id="scrambledLettersContainer" class="scrambled-letters-container" style="display: none;"></div>
+    <div id="editor-container">
+        <div class="top-controls">
+            <h1 data-translate="mainTitle" style="text-align: left; margin: 0;">Конструктор диктанта</h1>
+            <div class="field-group">
+                <label for="language-selector" data-translate="languageLabel">Язык:</label>
+                <select id="language-selector">
+                    <option value="ru">Русский</option>
+                    <option value="en">English</option>
+                </select>
             </div>
-            <div id="feedbackMessage" class="feedback-message"></div>
-            <button id="checkAnswerButton" class="btn">Проверить</button>
-            <button id="closeModalButton" class="btn" style="display: none;">Продолжить</button>
+        </div>
+
+        <div class="instructions">
+            <p><strong data-translate="instructionsTitle">Как пользоваться конструктором:</strong></p>
+            <ol>
+                <li data-translate="instr1">Настройте общие параметры игры ниже.</li>
+                <li data-translate="instr2">Заполните карточки заданий. Используйте кнопку "+ Добавить задание".</li>
+                <li data-translate="instr3">Нажмите "Сгенерировать код игры".</li>
+                <li data-translate="instr4">Скопируйте появившийся код и вставьте его на новый, чистый слайд Genially.</li>
+            </ol>
+        </div>
+
+        <div class="control-group">
+            <h3 data-translate="settingsTitle">1. Общие настройки</h3>
+            <div class="field-group">
+                <label for="difficulty-selector" data-translate="difficultyLabel">Уровень сложности:</label>
+                <select id="difficulty-selector">
+                    <option value="scramble" data-translate="difficultyScramble">Расставить буквы по порядку</option>
+                    <option value="type" data-translate="difficultyType">Впечатать слово самостоятельно</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3 data-translate="tasksTitle">2. Задания</h3>
+            <div id="task-list"></div>
+            <button id="add-task-btn" class="btn btn-add" data-translate="addTaskBtn">+ Добавить задание</button>
+        </div>
+        
+        <button id="generate-code-btn" class="btn btn-main-action" data-translate="generateBtn">Сгенерировать код игры</button>
+
+        <div id="output-container">
+            <h3 data-translate="outputTitle">3. Готовый код для вставки</h3>
+            <p data-translate="outputInstructions">Скопируйте этот код и вставьте его на новый слайд в Genially через "Вставка" -> "Другое".</p>
+            <textarea id="generated-code" readonly></textarea>
+            <button id="copy-code-btn" class="btn copy-button" data-translate="copyBtn">Скопировать код</button>
         </div>
     </div>
-
-    <!-- Модальное окно "Игра пройдена!" -->
-    <div id="gameOverModal" class="game-over-modal">
-        <div class="game-over-content">
-            <h2>🎉 Поздравляем! 🎉</h2>
-            <p>Ты успешно справился со всеми заданиями!</p>
-            <button class="btn" onclick="location.reload()">Начать заново</button>
-        </div>
-    </div>
-</div>
-
-<script>
-    /* 
-    ==============================
-    JAVASCRIPT ЛОГИКА ИГРЫ
-    ==============================
-    */
-
-    // Глобальная конфигурация игры
-    const gameConfig = {
-        difficulty: 'scramble', // 'scramble' или 'type'
-        feedbackMessages: {
-            correct: ['Отлично!', 'Верно!', 'Так держать!', 'Молодец!', 'Супер!'],
-        },
-        tasks: [
-            {
-                id: 'genially_element_cat', // ID элемента Genially (например, картинки), который будет триггером
-                type: 'image', // 'image' или 'definition'
-                content: 'https://cdn-icons-png.flaticon.com/512/194/194279.png', // URL картинки
-                answer: 'КОТ',
-                feedbackOverlayContent: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMjNqZGN2ZnpqZjFiaDhxczE5ZXNiaTcxNjZ2a3N2ZWNnaWF4YXU3ZSZlcD12MV9pbnRlcm5hbF9naWZfYXR0ZnM9Z2lmcy5naXBoeS5jb20vdjIvZ2lmcC9tZWRpYXMvZTQzMmU0NWItODk0Ny00MGYwLWJkMzctNGM5Mzc3ZWVjNjE5LmpwZWc/200w.webp', // URL гифки или текст
-                isCompleted: false
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- СЛОВАРЬ ДЛЯ ПЕРЕВОДА ИНТЕРФЕЙСА ---
+        const translations = {
+            ru: {
+                mainTitle: "Конструктор диктанта",
+                languageLabel: "Язык:",
+                instructionsTitle: "Как пользоваться конструктором:",
+                instr1: "Настройте общие параметры игры ниже.",
+                instr2: "Заполните карточки заданий. Используйте кнопку \"+ Добавить задание\".",
+                instr3: "Нажмите \"Сгенерировать код игры\".",
+                instr4: "Скопируйте появившийся код и вставьте его на новый, чистый слайд Genially.",
+                settingsTitle: "1. Общие настройки",
+                difficultyLabel: "Уровень сложности:",
+                difficultyScramble: "Расставить буквы по порядку",
+                difficultyType: "Впечатать слово самостоятельно",
+                tasksTitle: "2. Задания",
+                addTaskBtn: "+ Добавить задание",
+                generateBtn: "Сгенерировать код игры",
+                outputTitle: "3. Готовый код для вставки",
+                outputInstructions: "Скопируйте этот код и вставьте его на новый слайд в Genially через \"Вставка\" -> \"Другое\".",
+                copyBtn: "Скопировать код",
+                copiedBtn: "Скопировано!",
+                deleteBtn: "Удалить",
+                taskTypeLabel: "Тип задания:",
+                taskTypeImage: "Изображение",
+                taskTypeDefinition: "Дефиниция",
+                imageLinkLabel: "Ссылка на изображение:",
+                imageLinkPlaceholder: "https://example.com/image.png",
+                definitionLabel: "Текст дефиниции:",
+                definitionPlaceholder: "Напишите определение слова...",
+                answerLabel: "Правильный ответ (слово):",
+                answerPlaceholder: "КОТ",
+                feedbackLabel: "Фидбек после ответа (текст, эмодзи или ссылка на GIF):",
+                feedbackPlaceholder: "👍 или https://media.giphy.com/cat.gif",
+                // Тексты для сгенерированной игры
+                gameTitle: "Интерактивный диктант",
+                gameImageTaskHeader: "Что изображено?",
+                gameDefinitionTaskHeader: "Разгадай слово",
+                gameInputPlaceholder: "Введите слово",
+                gameCheckBtn: "Проверить",
+                gameContinueBtn: "Продолжить",
+                gameCongratsTitle: "🎉 Поздравляем! 🎉",
+                gameCongratsText: "Ты успешно справился со всеми заданиями!",
+                gameRestartBtn: "Начать заново"
             },
-            {
-                id: 'genially_element_apple',
-                type: 'image',
-                content: 'https://cdn-icons-png.flaticon.com/512/1071/1071649.png',
-                answer: 'ЯБЛОКО',
-                feedbackOverlayContent: '🍏', // Текст
-                isCompleted: false
-            },
-            {
-                id: 'genially_element_sun',
-                type: 'definition',
-                content: 'Яркая звезда, дающая свет и тепло Земле.',
-                answer: 'СОЛНЦЕ',
-                feedbackOverlayContent: '☀️',
-                isCompleted: false
-            },
-             {
-                id: 'genially_element_book',
-                type: 'image',
-                content: 'https://cdn-icons-png.flaticon.com/512/29/29166.png',
-                answer: 'КНИГА',
-                feedbackOverlayContent: '📚',
-                isCompleted: false
-            },
-            {
-                id: 'genially_element_fish',
-                type: 'definition',
-                content: 'Животное, которое плавает в воде и имеет жабры.',
-                answer: 'РЫБА',
-                feedbackOverlayContent: '🐠',
-                isCompleted: false
+            en: {
+                mainTitle: "Dictation Builder",
+                languageLabel: "Language:",
+                instructionsTitle: "How to use the builder:",
+                instr1: "Configure the general game settings below.",
+                instr2: "Fill in the task cards. Use the \"+ Add task\" button.",
+                instr3: "Click \"Generate game code\".",
+                instr4: "Copy the generated code and paste it into a new, clean Genially slide.",
+                settingsTitle: "1. General Settings",
+                difficultyLabel: "Difficulty level:",
+                difficultyScramble: "Arrange the letters in order",
+                difficultyType: "Type the word yourself",
+                tasksTitle: "2. Tasks",
+                addTaskBtn: "+ Add task",
+                generateBtn: "Generate game code",
+                outputTitle: "3. Ready-to-use code",
+                outputInstructions: "Copy this code and paste it into a new slide in Genially via \"Insert\" -> \"Other\".",
+                copyBtn: "Copy code",
+                copiedBtn: "Copied!",
+                deleteBtn: "Delete",
+                taskTypeLabel: "Task type:",
+                taskTypeImage: "Image",
+                taskTypeDefinition: "Definition",
+                imageLinkLabel: "Image URL:",
+                imageLinkPlaceholder: "https://example.com/image.png",
+                definitionLabel: "Definition text:",
+                definitionPlaceholder: "Write the word's definition...",
+                answerLabel: "Correct answer (word):",
+                answerPlaceholder: "CAT",
+                feedbackLabel: "Feedback after answer (text, emoji, or GIF URL):",
+                feedbackPlaceholder: "👍 or https://media.giphy.com/cat.gif",
+                // Texts for the generated game
+                gameTitle: "Interactive Dictation",
+                gameImageTaskHeader: "What is pictured?",
+                gameDefinitionTaskHeader: "Guess the word",
+                gameInputPlaceholder: "Enter the word",
+                gameCheckBtn: "Check",
+                gameContinueBtn: "Continue",
+                gameCongratsTitle: "🎉 Congratulations! 🎉",
+                gameCongratsText: "You have successfully completed all tasks!",
+                gameRestartBtn: "Start over"
             }
-        ]
-    };
+        };
 
-    // --- DOM Элементы ---
-    const taskModalOverlay = document.getElementById('taskModalOverlay');
-    const modalTaskHeader = document.getElementById('modalTaskHeader');
-    const modalTaskImage = document.getElementById('modalTaskImage');
-    const modalTaskDefinition = document.getElementById('modalTaskDefinition');
-    const answerTextInput = document.getElementById('answerTextInput');
-    const scrambledLettersContainer = document.getElementById('scrambledLettersContainer');
-    const sortableInputContainer = document.getElementById('sortableInputContainer');
-    const feedbackMessage = document.getElementById('feedbackMessage');
-    const checkAnswerButton = document.getElementById('checkAnswerButton');
-    const closeModalButton = document.getElementById('closeModalButton');
-    const gameOverModal = document.getElementById('gameOverModal');
+        const taskList = document.getElementById('task-list');
+        const addTaskBtn = document.getElementById('add-task-btn');
+        const generateCodeBtn = document.getElementById('generate-code-btn');
+        const outputContainer = document.getElementById('output-container');
+        const generatedCodeTextarea = document.getElementById('generated-code');
+        const copyCodeBtn = document.getElementById('copy-code-btn');
+        const difficultySelector = document.getElementById('difficulty-selector');
+        const languageSelector = document.getElementById('language-selector');
+        
+        let currentLang = 'ru';
 
-    let currentTask = null; // Текущее активное задание
-    let draggableLetters = []; // Для хранения элементов букв при перетаскивании
+        const setLanguage = (lang) => {
+            currentLang = lang;
+            const langDict = translations[lang];
+            document.querySelectorAll('[data-translate]').forEach(el => {
+                const key = el.dataset.translate;
+                if (langDict[key]) {
+                    el.textContent = langDict[key];
+                }
+            });
+            // Обновляем текст в select-опциях
+            difficultySelector.querySelector('[value="scramble"]').textContent = langDict.difficultyScramble;
+            difficultySelector.querySelector('[value="type"]').textContent = langDict.difficultyType;
 
-    // --- Вспомогательные функции ---
+            // Обновляем плейсхолдеры и лейблы в уже существующих карточках
+             document.querySelectorAll('.task-editor-item').forEach(card => updateCardLanguage(card, lang));
+        };
 
-    // Перемешивает массив (алгоритм Фишера-Йетса)
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-        return array;
-    }
+        const updateCardLanguage = (cardElement, lang) => {
+            const langDict = translations[lang];
+            cardElement.querySelector('.delete-task-btn').textContent = langDict.deleteBtn;
+            cardElement.querySelector('.task-type-label').textContent = langDict.taskTypeLabel;
+            cardElement.querySelector('.task-type-select option[value="image"]').textContent = langDict.taskTypeImage;
+            cardElement.querySelector('.task-type-select option[value="definition"]').textContent = langDict.taskTypeDefinition;
+            cardElement.querySelector('.content-image-group label').textContent = langDict.imageLinkLabel;
+            cardElement.querySelector('.task-content-image').placeholder = langDict.imageLinkPlaceholder;
+            cardElement.querySelector('.content-definition-group label').textContent = langDict.definitionLabel;
+            cardElement.querySelector('.task-content-definition').placeholder = langDict.definitionPlaceholder;
+            cardElement.querySelector('.task-answer-label').textContent = langDict.answerLabel;
+            cardElement.querySelector('.task-answer').placeholder = langDict.answerPlaceholder;
+            cardElement.querySelector('.task-feedback-label').textContent = langDict.feedbackLabel;
+            cardElement.querySelector('.task-feedback').placeholder = langDict.feedbackPlaceholder;
+        };
+        
+        const addTaskEditor = () => {
+            const langDict = translations[currentLang];
+            const taskDiv = document.createElement('div');
+            taskDiv.className = 'task-editor-item';
+            taskDiv.innerHTML = `
+                <button class="btn btn-danger delete-task-btn">${langDict.deleteBtn}</button>
+                <div class="field-group">
+                    <label class="task-type-label">${langDict.taskTypeLabel}</label>
+                    <select class="task-type-select">
+                        <option value="image">${langDict.taskTypeImage}</option>
+                        <option value="definition">${langDict.taskTypeDefinition}</option>
+                    </select>
+                </div>
+                <div class="field-group content-image-group">
+                    <label>${langDict.imageLinkLabel}</label>
+                    <input type="url" class="task-content-image" placeholder="${langDict.imageLinkPlaceholder}">
+                </div>
+                <div class="field-group content-definition-group" style="display: none;">
+                    <label>${langDict.definitionLabel}</label>
+                    <textarea class="task-content-definition" placeholder="${langDict.definitionPlaceholder}"></textarea>
+                </div>
+                <div class="field-group">
+                    <label class="task-answer-label">${langDict.answerLabel}</label>
+                    <input type="text" class="task-answer" placeholder="${langDict.answerPlaceholder}">
+                </div>
+                <div class="field-group">
+                    <label class="task-feedback-label">${langDict.feedbackLabel}</label>
+                    <input type="text" class="task-feedback" placeholder="${langDict.feedbackPlaceholder}">
+                </div>
+            `;
+            taskList.appendChild(taskDiv);
+        };
 
-    // Создает случайное сообщение для положительного фидбека
-    function getRandomCorrectFeedback() {
-        const messages = gameConfig.feedbackMessages.correct;
-        return messages[Math.floor(Math.random() * messages.length)];
-    }
-
-    // --- Логика для режима 'scramble' (перетаскивание букв) ---
-
-    function setupScrambleMode(answer) {
-        answerTextInput.style.display = 'none'; // Скрыть текстовый ввод
-        sortableInputContainer.style.display = 'flex';
-        scrambledLettersContainer.style.display = 'flex';
-
-        sortableInputContainer.innerHTML = ''; // Очистить предыдущие буквы
-        scrambledLettersContainer.innerHTML = ''; // Очистить предыдущие буквы
-
-        const letters = answer.toUpperCase().split('');
-        const shuffledLetters = shuffleArray([...letters]); // Копируем и перемешиваем
-
-        // Создаем целевые ячейки для перетаскивания
-        for (let i = 0; i < letters.length; i++) {
-            const placeholder = document.createElement('div');
-            placeholder.classList.add('sortable-input-letter', 'placeholder'); // Добавляем класс placeholder
-            placeholder.dataset.index = i;
-            sortableInputContainer.appendChild(placeholder);
-        }
-
-        draggableLetters = [];
-        // Создаем перемешиваемые буквы
-        shuffledLetters.forEach(letter => {
-            const letterElement = document.createElement('div');
-            letterElement.classList.add('scrambled-letter');
-            letterElement.textContent = letter;
-            letterElement.draggable = true;
-            draggableLetters.push(letterElement);
-            scrambledLettersContainer.appendChild(letterElement);
+        taskList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('delete-task-btn')) {
+                e.target.closest('.task-editor-item').remove();
+            }
         });
 
-        // Добавляем слушатели событий для drag-and-drop
-        draggableLetters.forEach(letter => {
-            letter.addEventListener('dragstart', handleDragStart);
-            letter.addEventListener('dragend', handleDragEnd);
+        taskList.addEventListener('change', (e) => {
+            if (e.target.classList.contains('task-type-select')) {
+                const parent = e.target.closest('.task-editor-item');
+                const imageGroup = parent.querySelector('.content-image-group');
+                const definitionGroup = parent.querySelector('.content-definition-group');
+                imageGroup.style.display = e.target.value === 'image' ? 'block' : 'none';
+                definitionGroup.style.display = e.target.value === 'definition' ? 'block' : 'none';
+            }
         });
-
-        sortableInputContainer.addEventListener('dragover', handleDragOver);
-        sortableInputContainer.addEventListener('drop', handleDrop);
-        sortableInputContainer.addEventListener('dragleave', handleDragLeave);
-    }
-
-    let draggedItem = null;
-
-    function handleDragStart(e) {
-        draggedItem = e.target;
-        setTimeout(() => {
-            e.target.classList.add('dragging');
-        }, 0); // Добавляем класс после начала перетаскивания
-    }
-
-    function handleDragEnd(e) {
-        e.target.classList.remove('dragging');
-        draggedItem = null;
-    }
-
-    function handleDragOver(e) {
-        e.preventDefault(); // Разрешаем drop
-        if (e.target.classList.contains('sortable-input-letter') && !e.target.classList.contains('dragging')) {
-            // Визуальный фидбек при наведении
-            e.target.style.transform = 'scale(1.1)';
-        }
-    }
-
-    function handleDragLeave(e) {
-        if (e.target.classList.contains('sortable-input-letter')) {
-            e.target.style.transform = '';
-        }
-    }
-
-    function handleDrop(e) {
-        e.preventDefault();
-        if (!draggedItem) return;
-
-        const target = e.target;
-        // Если перетаскиваем в пустой контейнер или на плейсхолдер
-        if (target === sortableInputContainer || target.classList.contains('placeholder')) {
-            if (target.classList.contains('placeholder')) {
-                 // Если бросаем на занятую ячейку, меняем местами
-                if (!target.classList.contains('placeholder') && target.parentElement === sortableInputContainer) {
-                    const originalParent = draggedItem.parentElement;
-                    originalParent.appendChild(target);
-                }
-                target.parentNode.insertBefore(draggedItem, target.nextSibling); // Вставляем после плейсхолдера
-                draggedItem.classList.remove('scrambled-letter');
-                draggedItem.classList.add('sortable-input-letter');
-                // Удаляем placeholder класс, если это была пустая ячейка
-                if (target.classList.contains('placeholder')) {
-                    target.remove();
-                }
-            } else { // Если бросаем в сам sortableInputContainer (добавляем в конец)
-                 // Проверить, есть ли пустые placeholder'ы
-                const emptyPlaceholder = sortableInputContainer.querySelector('.placeholder');
-                if (emptyPlaceholder) {
-                     // Если есть, вставляем туда
-                    emptyPlaceholder.replaceWith(draggedItem);
-                    draggedItem.classList.remove('scrambled-letter');
-                    draggedItem.classList.add('sortable-input-letter');
-                } else {
-                    // Если нет, просто добавляем в конец
-                    sortableInputContainer.appendChild(draggedItem);
-                    draggedItem.classList.remove('scrambled-letter');
-                    draggedItem.classList.add('sortable-input-letter');
-                }
+        
+        languageSelector.addEventListener('change', (e) => setLanguage(e.target.value));
+        addTaskBtn.addEventListener('click', addTaskEditor);
+        
+        generateCodeBtn.addEventListener('click', () => {
+            const tasks = Array.from(document.querySelectorAll('.task-editor-item')).map((item, index) => {
+                const type = item.querySelector('.task-type-select').value;
+                const content = (type === 'image') 
+                    ? item.querySelector('.task-content-image').value.trim()
+                    : item.querySelector('.task-content-definition').value.trim();
+                const answer = item.querySelector('.task-answer').value.trim();
+                const feedback = item.querySelector('.task-feedback').value.trim();
+                
+                return {
+                    id: `task_${index}_${Date.now()}`, type, content, answer,
+                    feedbackOverlayContent: feedback || '✅'
+                };
+            }).filter(task => task.content && task.answer);
+            
+            if (tasks.length === 0) {
+                alert(currentLang === 'ru' ? 'Пожалуйста, добавьте хотя бы одно задание.' : 'Please add at least one task.');
+                return;
             }
-        } else if (target.classList.contains('sortable-input-letter') && target.parentElement === sortableInputContainer) {
-            // Если перетаскиваем на уже заполненную букву в поле ответа
-            const originalParent = draggedItem.parentElement;
-            sortableInputContainer.insertBefore(draggedItem, target);
-            if (originalParent === scrambledLettersContainer) {
-                // Если буква пришла из перемешанных букв, создаем placeholder на ее месте
-                const placeholder = document.createElement('div');
-                placeholder.classList.add('sortable-input-letter', 'placeholder');
-                originalParent.appendChild(placeholder); // Вернуть placeholder
-            } else {
-                // Если буква пришла из поля ответа, просто переставляем
-                originalParent.insertBefore(target, draggedItem);
-            }
-            draggedItem.classList.remove('scrambled-letter');
-            draggedItem.classList.add('sortable-input-letter');
-        } else if (target === scrambledLettersContainer || target.classList.contains('scrambled-letter')) {
-            // Перетаскиваем обратно в перемешанные буквы
-            if (draggedItem.parentElement === sortableInputContainer) {
-                // Возвращаем placeholder на место
-                const placeholder = document.createElement('div');
-                placeholder.classList.add('sortable-input-letter', 'placeholder');
-                draggedItem.replaceWith(placeholder);
-            }
-            scrambledLettersContainer.appendChild(draggedItem);
-            draggedItem.classList.remove('sortable-input-letter');
-            draggedItem.classList.add('scrambled-letter');
-        }
 
-        // Убрать все стили наведения
-        Array.from(sortableInputContainer.children).forEach(child => {
-            child.style.transform = '';
+            const gameConfig = {
+                lang: currentLang,
+                difficulty: difficultySelector.value,
+                tasks: tasks
+            };
+            
+            generatedCodeTextarea.value = generateFinalHtml(gameConfig, translations);
+            outputContainer.style.display = 'block';
+            generatedCodeTextarea.select();
         });
-    }
-
-    // --- Основная игровая логика ---
-
-    // Открывает модальное окно с заданием
-    function openTaskModal(task) {
-        currentTask = task;
-        feedbackMessage.style.display = 'none';
-        checkAnswerButton.style.display = 'block';
-        closeModalButton.style.display = 'none';
-
-        if (task.type === 'image') {
-            modalTaskImage.src = task.content;
-            modalTaskImage.style.display = 'block';
-            modalTaskDefinition.style.display = 'none';
-            modalTaskHeader.textContent = 'Что изображено?';
-        } else { // definition
-            modalTaskDefinition.textContent = task.content;
-            modalTaskDefinition.style.display = 'block';
-            modalTaskImage.style.display = 'none';
-            modalTaskHeader.textContent = 'Что это за слово?';
-        }
-
-        if (gameConfig.difficulty === 'type') {
-            answerTextInput.value = '';
-            answerTextInput.style.display = 'block';
-            sortableInputContainer.style.display = 'none';
-            scrambledLettersContainer.style.display = 'none';
-            answerTextInput.focus();
-        } else { // scramble
-            setupScrambleMode(task.answer);
-            answerTextInput.style.display = 'none';
-        }
-
-        taskModalOverlay.classList.add('active');
-    }
-
-    // Закрывает модальное окно
-    function closeTaskModal() {
-        taskModalOverlay.classList.remove('active');
-        // Добавление небольшой задержки для завершения анимации, перед тем как сбросить состояние
-        setTimeout(() => {
-             // Сброс всех полей
-            modalTaskImage.src = '';
-            modalTaskDefinition.textContent = '';
-            answerTextInput.value = '';
-            scrambledLettersContainer.innerHTML = '';
-            sortableInputContainer.innerHTML = '';
-            feedbackMessage.style.display = 'none';
-            checkAnswerButton.style.display = 'block';
-            closeModalButton.style.display = 'none';
-            currentTask = null;
-        }, 300); // Соответствует длительности CSS transition
-    }
-
-    // Проверяет ответ
-    function checkAnswer() {
-        if (!currentTask) return;
-
-        let playerAnswer = '';
-        if (gameConfig.difficulty === 'type') {
-            playerAnswer = answerTextInput.value.toUpperCase().trim();
-        } else { // scramble
-            // Собираем буквы из sortableInputContainer
-            const lettersInOrder = Array.from(sortableInputContainer.children)
-                                       .filter(el => !el.classList.contains('placeholder'))
-                                       .map(el => el.textContent)
-                                       .join('');
-            playerAnswer = lettersInOrder.toUpperCase().trim();
-        }
-
-        const correctAnswer = currentTask.answer.toUpperCase().trim();
-
-        if (playerAnswer === correctAnswer) {
-            feedbackMessage.textContent = getRandomCorrectFeedback();
-            feedbackMessage.style.color = 'var(--primary-color)';
-            feedbackMessage.style.display = 'block';
-            checkAnswerButton.style.display = 'none';
-            closeModalButton.style.display = 'block';
-
-            // Отмечаем задание как выполненное
-            currentTask.isCompleted = true;
-            markTaskAsCompletedOnGenially(currentTask.id, currentTask.feedbackOverlayContent);
-        } else {
-            feedbackMessage.textContent = 'Попробуй еще раз!';
-            feedbackMessage.style.color = '#DC3545'; // Красный для ошибки
-            feedbackMessage.style.display = 'block';
-            // В режиме scramble можно сбросить, если неправильно
-            if (gameConfig.difficulty === 'scramble') {
-                // Очищаем поле ответа и возвращаем буквы в контейнер перемешанных
-                const currentLettersInInput = Array.from(sortableInputContainer.children);
-                currentLettersInInput.forEach(letterElement => {
-                    if (!letterElement.classList.contains('placeholder')) {
-                        letterElement.classList.remove('sortable-input-letter');
-                        letterElement.classList.add('scrambled-letter');
-                        scrambledLettersContainer.appendChild(letterElement);
-                    }
-                });
-                // Восстанавливаем placeholder'ы
-                sortableInputContainer.innerHTML = '';
-                const lettersLength = currentTask.answer.length;
-                 for (let i = 0; i < lettersLength; i++) {
-                    const placeholder = document.createElement('div');
-                    placeholder.classList.add('sortable-input-letter', 'placeholder');
-                    sortableInputContainer.appendChild(placeholder);
-                }
-
-            }
-             // В режиме type просто остается текст для редактирования
-        }
-    }
-
-    // Применяет эффекты завершения задания к элементу Genially
-    function markTaskAsCompletedOnGenially(taskId, feedbackContent) {
-        const geniallyElement = document.getElementById(taskId);
-        if (geniallyElement) {
-            geniallyElement.classList.add('genially-task-completed');
-
-            // Создаем оверлей
-            const overlay = document.createElement('div');
-            overlay.classList.add('task-overlay');
-
-            if (feedbackContent.startsWith('http')) { // Если это URL (предполагаем гифку)
-                const img = document.createElement('img');
-                img.src = feedbackContent;
-                img.classList.add('feedback-gif');
-                overlay.appendChild(img);
-            } else { // Если это текст
-                overlay.textContent = feedbackContent;
-            }
-
-            // Добавляем оверлей к родительскому элементу Genially
-            // Важно: На Genially элементы могут быть обернуты в другие div'ы.
-            // Нужно найти родителя, к которому можно добавить overlay, чтобы он наложился корректно.
-            // Простейший вариант - добавлять прямо к элементу, если он может быть контейнером.
-            // Если Genially wrap'ует элементы, возможно, придется искать ближайшего позиционированного родителя.
-            // Для простоты, пока попробуем добавить прямо к элементу:
-            geniallyElement.style.position = 'relative'; // Убедимся, что родитель позиционирован
-            geniallyElement.appendChild(overlay);
-
-            // Активируем анимацию
+        
+        copyCodeBtn.addEventListener('click', () => {
+            generatedCodeTextarea.select();
+            document.execCommand('copy');
+            copyCodeBtn.textContent = translations[currentLang].copiedBtn;
             setTimeout(() => {
-                overlay.classList.add('completed');
-            }, 50); // Небольшая задержка
-
-            // Проверяем, все ли задания выполнены
-            checkGameCompletion();
-        }
-    }
-
-    // Проверяет, все ли задания выполнены
-    function checkGameCompletion() {
-        const allCompleted = gameConfig.tasks.every(task => task.isCompleted);
-        if (allCompleted) {
-            setTimeout(() => { // Небольшая задержка, чтобы пользователь увидел последний фидбек
-                gameOverModal.classList.add('active');
-            }, 1000);
-        }
-    }
-
-
-    // --- Инициализация игры ---
-
-    function initializeGame() {
-        // Добавляем слушатели событий ко всем элементам заданий на Genially
-        gameConfig.tasks.forEach(task => {
-            const geniallyElement = document.getElementById(task.id);
-            if (geniallyElement) {
-                geniallyElement.style.cursor = 'pointer'; // Визуально показать, что можно кликать
-                geniallyElement.addEventListener('click', () => {
-                    if (!task.isCompleted) { // Открывать только если задание не выполнено
-                        openTaskModal(task);
-                    }
-                });
-                // Если задание уже выполнено (например, при перезагрузке страницы, если мы сохраняем состояние)
-                if (task.isCompleted) {
-                    markTaskAsCompletedOnGenially(task.id, task.feedbackOverlayContent);
-                }
-            } else {
-                console.warn(`Genially element with ID "${task.id}" not found. Please ensure it exists on the slide.`);
-            }
+                copyCodeBtn.textContent = translations[currentLang].copyBtn;
+            }, 2000);
         });
 
-        // Слушатели для кнопок в модальном окне
-        checkAnswerButton.addEventListener('click', checkAnswer);
-        closeModalButton.addEventListener('click', closeTaskModal);
+        // --- Инициализация редактора ---
+        setLanguage(currentLang);
+        addTaskEditor();
+    });
 
-        // Закрытие модального окна по клику на оверлей (вне контента)
-        taskModalOverlay.addEventListener('click', (e) => {
-            if (e.target === taskModalOverlay && closeModalButton.style.display === 'block') { // Только если задание уже выполнено и кнопка "Продолжить" видна
-                closeTaskModal();
-            }
-        });
-
-        // Для текстового ввода - проверка по Enter
-        answerTextInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                checkAnswer();
-            }
-        });
+    function generateFinalHtml(config, translations) {
+        const configString = JSON.stringify(config);
+        const translationsString = JSON.stringify(translations);
+        
+        // Вся логика и стили игры, упакованные в одну строку
+        return `
+<!DOCTYPE html>
+<html lang="${config.lang}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Dictation</title>
+    <style>
+        :root{--primary-color:#4a90e2;--secondary-color:#f5a623;--correct-color:#50e3c2;--incorrect-color:#d0021b;--light-bg-color:#f9f9f9;--text-color:#333;--background-color:rgba(0,0,0,0.6);--border-radius:12px;--shadow:0 4px 15px rgba(0,0,0,0.1);--transition-speed:0.3s}
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
+        body{font-family:'Montserrat',sans-serif;line-height:1.6;color:var(--text-color);background-color:var(--light-bg-color);margin:0;padding:20px;display:flex;justify-content:center;align-items:flex-start;min-height:100vh}#app-wrapper{width:100%;max-width:1200px}h1{text-align:center;color:var(--primary-color);margin-bottom:30px}#main-game-board{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px}.task-card{background:white;border-radius:var(--border-radius);box-shadow:var(--shadow);cursor:pointer;overflow:hidden;position:relative;transition:transform var(--transition-speed) ease,box-shadow var(--transition-speed) ease;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px;min-height:180px;text-align:center}.task-card:hover{transform:translateY(-5px);box-shadow:0 8px 25px rgba(0,0,0,0.15)}.task-card img{max-width:80px;height:auto;margin-bottom:15px}.task-card p{margin:0;font-size:1em;color:#555}.task-card.completed{filter:grayscale(80%) brightness(60%);pointer-events:none;cursor:default}.task-card .task-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background-color:rgba(74,144,226,0.7);display:flex;justify-content:center;align-items:center;color:white;font-size:2.5em;font-weight:bold;text-align:center;opacity:0;visibility:hidden;transition:opacity var(--transition-speed) ease;pointer-events:none}.task-card.completed .task-overlay{opacity:1;visibility:visible}.task-overlay img{max-width:90%;max-height:90%;object-fit:contain;margin:0}.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:var(--background-color);display:flex;justify-content:center;align-items:center;z-index:1000;backdrop-filter:blur(5px);opacity:0;visibility:hidden;transition:opacity var(--transition-speed) ease,visibility var(--transition-speed) ease}.modal-overlay.active{opacity:1;visibility:visible}.modal-content{background:white;padding:30px;border-radius:var(--border-radius);box-shadow:var(--shadow);width:90%;max-width:600px;text-align:center;transform:scale(0.9);opacity:0;transition:transform var(--transition-speed) ease,opacity var(--transition-speed) ease}.modal-overlay.active .modal-content{transform:scale(1);opacity:1}.modal-header{font-size:1.8em;font-weight:bold;color:var(--primary-color)}.modal-body{margin:25px 0}.modal-body img{max-width:150px;height:auto;border-radius:8px}.modal-body p{font-size:1.2em;line-height:1.5;color:#555}.answer-input{width:calc(100% - 24px);padding:12px;border:2px solid #ddd;border-radius:var(--border-radius);font-size:1.5em;text-align:center;text-transform:uppercase;outline:none;transition:border-color var(--transition-speed) ease;margin-top:20px;font-family:'Montserrat',sans-serif}.answer-input:focus{border-color:var(--primary-color)}.scramble-container{margin-top:20px}.sortable-input-container{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;min-height:60px;border:2px dashed #ccc;border-radius:var(--border-radius);padding:15px;background-color:#fafafa}.scrambled-letters-container{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:25px;padding:15px;border-top:1px solid #eee}.letter-box{background:var(--secondary-color);color:white;padding:12px 18px;border-radius:8px;cursor:grab;font-weight:bold;font-size:1.4em;user-select:none;box-shadow:0 2px 5px rgba(0,0,0,0.1);transition:background var(--transition-speed) ease,transform var(--transition-speed) ease}.letter-box:hover{transform:translateY(-2px)}.letter-box.dragging{opacity:0.5;box-shadow:0 5px 15px rgba(0,0,0,0.3)}.btn{background-color:var(--primary-color);color:white;padding:12px 25px;border:none;border-radius:var(--border-radius);cursor:pointer;font-size:1.1em;font-weight:bold;transition:background-color var(--transition-speed) ease,transform var(--transition-speed) ease;text-decoration:none;display:inline-block;margin:5px}.btn:hover{background-color:#357abd;transform:translateY(-2px)}#closeModalButton{background-color:var(--correct-color)}#closeModalButton:hover{background-color:#3dbca0}.feedback-message{margin-top:20px;font-size:1.2em;font-weight:bold;min-height:25px;transition:color var(--transition-speed) ease}.feedback-message.correct{color:var(--correct-color)}.feedback-message.incorrect{color:var(--incorrect-color)}#gameOverModal .modal-content{border:3px solid var(--correct-color)}#gameOverModal h2{font-size:2.5em;color:var(--correct-color);margin-bottom:20px}#gameOverModal .btn{background-color:var(--secondary-color)}
+    </style>
+</head>
+<body>
+    <div id="app-wrapper"><h1></h1><div id="main-game-board"></div></div>
+    <div id="taskModalOverlay" class="modal-overlay"><div class="modal-content"><div id="modalTaskHeader" class="modal-header"></div><div class="modal-body"><img id="modalTaskImage" src="" alt="" style="display:none"><p id="modalTaskDefinition" style="display:none"></p><input type="text" id="answerTextInput" class="answer-input" style="display:none"><div class="scramble-container" style="display:none"><div id="sortableInputContainer" class="sortable-input-container"></div><div id="scrambledLettersContainer" class="scrambled-letters-container"></div></div></div><div id="feedbackMessage" class="feedback-message"></div><div class="modal-footer"><button id="checkAnswerButton" class="btn"></button><button id="closeModalButton" class="btn" style="display:none"></button></div></div></div>
+    <div id="gameOverModal" class="modal-overlay"><div class="modal-content"><h2></h2><p></p><button class="btn"></button></div></div>
+    <script>
+        document.addEventListener('DOMContentLoaded',()=>{const gameConfig=${configString};const allTranslations=${translationsString};const T=allTranslations[gameConfig.lang];const mainGameBoard=document.getElementById('main-game-board'),taskModalOverlay=document.getElementById('taskModalOverlay'),modalTaskHeader=document.getElementById('modalTaskHeader'),modalTaskImage=document.getElementById('modalTaskImage'),modalTaskDefinition=document.getElementById('modalTaskDefinition'),answerTextInput=document.getElementById('answerTextInput'),scrambleContainer=document.querySelector('.scramble-container'),sortableInputContainer=document.getElementById('sortableInputContainer'),scrambledLettersContainer=document.getElementById('scrambledLettersContainer'),feedbackMessage=document.getElementById('feedbackMessage'),checkAnswerButton=document.getElementById('checkAnswerButton'),closeModalButton=document.getElementById('closeModalButton'),gameOverModal=document.getElementById('gameOverModal');let currentTask=null,draggedItem=null;function shuffleArray(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}function getRandomCorrectFeedback(){const m=T.correctFeedback||['Great!','Correct!','Well done!'];return m[Math.floor(Math.random()*m.length)]}function createLetterBox(l){const e=document.createElement('div');return e.className='letter-box',e.textContent=l,e.draggable=!0,e}function setupScrambleMode(a){sortableInputContainer.innerHTML='',scrambledLettersContainer.innerHTML='';const l=shuffleArray([...a.toUpperCase().split('')]);l.forEach(l=>scrambledLettersContainer.appendChild(createLetterBox(l)))}function openTaskModal(a){currentTask=a,feedbackMessage.textContent='',feedbackMessage.className='feedback-message',checkAnswerButton.style.display='inline-block',closeModalButton.style.display='none',a.type==='image'?(modalTaskImage.src=a.content,modalTaskImage.style.display='block',modalTaskDefinition.style.display='none',modalTaskHeader.textContent=T.gameImageTaskHeader):(modalTaskDefinition.textContent=a.content,modalTaskDefinition.style.display='block',modalTaskImage.style.display='none',modalTaskHeader.textContent=T.gameDefinitionTaskHeader),gameConfig.difficulty==='type'?(answerTextInput.value='',answerTextInput.style.display='block',scrambleContainer.style.display='none',answerTextInput.focus()):(answerTextInput.style.display='none',scrambleContainer.style.display='block',setupScrambleMode(a.answer)),taskModalOverlay.classList.add('active')}function closeTaskModal(){taskModalOverlay.classList.remove('active'),checkGameCompletion()}function checkAnswer(){if(!currentTask)return;let a=gameConfig.difficulty==='type'?answerTextInput.value.toUpperCase().trim():Array.from(sortableInputContainer.children).map(e=>e.textContent).join('');a===currentTask.answer.toUpperCase().trim()?(feedbackMessage.textContent=getRandomCorrectFeedback(),feedbackMessage.className='feedback-message correct',checkAnswerButton.style.display='none',closeModalButton.style.display='inline-block',currentTask.isCompleted=!0,markTaskAsCompleted(currentTask)):(feedbackMessage.textContent=T.incorrectFeedback||'Try again!',feedbackMessage.className='feedback-message incorrect')}function markTaskAsCompleted(a){const t=document.getElementById(a.id);if(!t)return;t.classList.add('completed');const e=t.querySelector('.task-overlay');a.feedbackOverlayContent.startsWith('http')?e.innerHTML=\`<img src="\${a.feedbackOverlayContent}" alt="Feedback">\`:e.textContent=a.feedbackOverlayContent}function checkGameCompletion(){gameConfig.tasks.every(a=>a.isCompleted)&&setTimeout(()=>gameOverModal.classList.add('active'),500)}function initializeGame(){document.querySelector('#app-wrapper h1').textContent=T.gameTitle,checkAnswerButton.textContent=T.gameCheckBtn,closeModalButton.textContent=T.gameContinueBtn,answerTextInput.placeholder=T.gameInputPlaceholder;const g=gameOverModal.querySelector('.modal-content');g.querySelector('h2').textContent=T.gameCongratsTitle,g.querySelector('p').textContent=T.gameCongratsText,g.querySelector('button').textContent=T.gameRestartBtn,g.querySelector('button').onclick=()=>location.reload(),gameConfig.tasks.forEach(a=>{a.isCompleted=!1;const t=document.createElement('div');t.className='task-card',t.id=a.id,t.innerHTML=\`\${a.type==='image'?\`<img src="\${a.content}" alt="">\`:\`<p>\${a.content}</p>\`}<div class="task-overlay"></div>\`,t.addEventListener('click',()=>{!a.isCompleted&&openTaskModal(a)}),mainGameBoard.appendChild(t)})}checkAnswerButton.addEventListener('click',checkAnswer),closeModalButton.addEventListener('click',closeTaskModal),answerTextInput.addEventListener('keypress',e=>{e.key==='Enter'&&checkAnswer()});function getDragAfterElement(c,y){const d=[...c.querySelectorAll('.letter-box:not(.dragging)')];return d.reduce((c,e)=>{const t=e.getBoundingClientRect(),o=y-t.top-t.height/2;return o<0&&o>c.offset?{offset:o,element:e}:c},{offset:Number.NEGATIVE_INFINITY}).element}[sortableInputContainer,scrambledLettersContainer].forEach(c=>{c.addEventListener('dragstart',e=>{e.target.classList.contains('letter-box')&&(draggedItem=e.target,setTimeout(()=>draggedItem.classList.add('dragging'),0))}),c.addEventListener('dragend',()=>{draggedItem&&(draggedItem.classList.remove('dragging'),draggedItem=null)}),c.addEventListener('dragover',e=>{e.preventDefault();const t=getDragAfterElement(c,e.clientY);t==null?c.appendChild(draggedItem):c.insertBefore(draggedItem,t)})}),initializeGame()});
+    <\/script>
+</body>
+</html>`;
     }
-
-    // Запускаем инициализацию, когда DOM будет готов
-    document.addEventListener('DOMContentLoaded', initializeGame);
-
-    // Genially иногда встраивает контент в iframe или загружает его асинхронно.
-    // Если DOMContentLoaded не срабатывает, можно попробовать небольшую задержку
-    // или использовать MutationObserver, но для начала DOMContentLoaded должен быть достаточен.
-    // В случае проблем, можно попробовать обернуть initializeGame в setTimeout(initializeGame, 500);
-
-</script>
+    </script>
+</body>
+</html>

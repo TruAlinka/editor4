@@ -5,38 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Конструктор диктанта</title>
     <style>
-        /* Стили остались прежними для сохранения внешнего вида */
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
-        :root { --primary-color: #4a90e2; --secondary-color: #f5a623; --correct-color: #50e3c2; --danger-color: #d0021b; --light-bg-color: #f9f9f9; --text-color: #333; --border-radius: 8px; --shadow: 0 4px 15px rgba(0, 0, 0, 0.1); --transition-speed: 0.3s; }
-        body { font-family: 'Montserrat', sans-serif; background-color: var(--light-bg-color); color: var(--text-color); margin: 0; padding: 25px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-        #editor-container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: var(--border-radius); box-shadow: var(--shadow); }
-        h1, h2, h3 { color: var(--primary-color); text-align: center; }
-        .control-group { margin-bottom: 25px; padding: 20px; border: 1px solid #e0e0e0; border-radius: var(--border-radius); }
-        label { display: block; font-weight: 600; margin-bottom: 8px; }
-        input[type="text"], input[type="url"], select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em; box-sizing: border-box; transition: border-color var(--transition-speed); }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary-color); }
-        textarea { resize: vertical; min-height: 80px; }
-        .btn { background-color: var(--primary-color); color: white; padding: 12px 20px; border: none; border-radius: var(--border-radius); cursor: pointer; font-size: 1em; font-weight: 600; transition: background-color var(--transition-speed), transform var(--transition-speed); text-decoration: none; display: inline-block; }
-        .btn:hover { transform: translateY(-2px); }
-        .btn.btn-add { background-color: var(--correct-color); margin-top: 15px; display: block; width: 100%; }
-        .btn.btn-danger { background-color: var(--danger-color); padding: 8px 12px; font-size: 0.9em; }
-        .btn.btn-main-action { width: 100%; padding: 15px; font-size: 1.2em; margin-top: 20px; }
-        .task-editor-item { background: #fafafa; padding: 20px; border-radius: var(--border-radius); margin-bottom: 15px; border: 1px solid #e0e0e0; position: relative; }
-        .task-editor-item .field-group { margin-bottom: 15px; }
-        .task-editor-item .delete-task-btn { position: absolute; top: 15px; right: 15px; }
-        #output-container { margin-top: 30px; display: none; }
-        #generated-code { width: 100%; height: 250px; font-family: monospace; font-size: 0.9em; border: 1px solid #ccc; border-radius: 4px; padding: 10px; box-sizing: border-box; background: #2d2d2d; color: #f0f0f0; }
-        .copy-button { margin-top: 10px; background-color: var(--secondary-color); }
-        .instructions { background-color: #eef7ff; border-left: 5px solid var(--primary-color); padding: 15px; margin: 20px 0; border-radius: 4px; }
-        .top-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        /* Стили редактора - упрощены и сжаты */
+        :root{--p:#4a90e2;--s:#f5a623;--c:#50e3c2;--d:#d0021b;--lb:#f9f9f9;--t:#333;--br:8px;--sh:0 4px 15px rgba(0,0,0,.1);--ts:.3s}
+        body{font-family:Arial,sans-serif;background-color:var(--lb);color:var(--t);margin:0;padding:25px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+        #editor-container{max-width:900px;margin:0 auto;background:#fff;padding:30px;border-radius:var(--br);box-shadow:var(--sh)}
+        h1,h2,h3{color:var(--p);text-align:center}
+        .control-group{margin-bottom:25px;padding:20px;border:1px solid #e0e0e0;border-radius:var(--br)}
+        label{display:block;font-weight:700;margin-bottom:8px}
+        input[type="text"],input[type="url"],select,textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:4px;font-size:1em;box-sizing:border-box;transition:border-color var(--ts);margin-top:5px}
+        input:focus,select:focus,textarea:focus{outline:0;border-color:var(--p)}
+        textarea{resize:vertical;min-height:80px}
+        .btn{background-color:var(--p);color:#fff;padding:12px 20px;border:none;border-radius:var(--br);cursor:pointer;font-size:1em;font-weight:700;transition:background-color var(--ts),transform var(--ts);text-decoration:none;display:inline-block}
+        .btn:hover{transform:translateY(-2px)}
+        .btn.btn-add{background-color:var(--c);margin-top:15px;display:block;width:100%}
+        .btn.btn-danger{background-color:var(--d);padding:8px 12px;font-size:.9em}
+        .btn.btn-main-action{width:100%;padding:15px;font-size:1.2em;margin-top:20px}
+        .task-editor-item{background:#fafafa;padding:20px;border-radius:var(--br);margin-bottom:15px;border:1px solid #e0e0e0;position:relative}
+        .task-editor-item .field-group{margin-bottom:15px}
+        .task-editor-item .delete-task-btn{position:absolute;top:15px;right:15px}
+        #output-container{margin-top:30px;display:none}
+        #generated-code{width:100%;height:250px;font-family:monospace;font-size:.9em;border:1px solid #ccc;border-radius:4px;padding:10px;box-sizing:border-box;background:#2d2d2d;color:#f0f0f0}
+        .copy-button{margin-top:10px;background-color:var(--s)}
+        .instructions{background-color:#eef7ff;border-left:5px solid var(--p);padding:15px;margin:20px 0;border-radius:4px}
+        .top-controls{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
     </style>
 </head>
 <body>
 
     <div id="editor-container">
         <div class="top-controls">
-            <h1 data-translate="mainTitle" style="text-align: left; margin: 0;">Конструктор диктанта</h1>
-            <div class="field-group">
+            <h1 data-translate="mainTitle" style="text-align: left; margin: 0;"></h1>
+            <div class="field-group" style="margin-bottom: 0;">
                 <label for="language-selector" data-translate="languageLabel">Язык:</label>
                 <select id="language-selector">
                     <option value="ru">Русский</option>
@@ -46,45 +45,44 @@
         </div>
 
         <div class="instructions">
-            <p><strong data-translate="instructionsTitle">Как пользоваться конструктором:</strong></p>
+            <p><strong data-translate="instructionsTitle"></strong></p>
             <ol>
-                <li data-translate="instr1">Настройте общие параметры игры ниже.</li>
-                <li data-translate="instr2">Заполните карточки заданий. Используйте кнопку "+ Добавить задание".</li>
-                <li data-translate="instr3">Нажмите "Сгенерировать код игры".</li>
-                <li data-translate="instr4">Скопируйте появившийся код и вставьте его на новый, чистый слайд Genially.</li>
+                <li data-translate="instr1"></li>
+                <li data-translate="instr2"></li>
+                <li data-translate="instr3"></li>
+                <li data-translate="instr4"></li>
             </ol>
         </div>
 
         <div class="control-group">
-            <h3 data-translate="settingsTitle">1. Общие настройки</h3>
+            <h3 data-translate="settingsTitle"></h3>
             <div class="field-group">
-                <label for="difficulty-selector" data-translate="difficultyLabel">Уровень сложности:</label>
+                <label for="difficulty-selector" data-translate="difficultyLabel"></label>
                 <select id="difficulty-selector">
-                    <option value="scramble" data-translate="difficultyScramble">Расставить буквы по порядку</option>
-                    <option value="type" data-translate="difficultyType">Впечатать слово самостоятельно</option>
+                    <option value="scramble" data-translate="difficultyScramble"></option>
+                    <option value="type" data-translate="difficultyType"></option>
                 </select>
             </div>
         </div>
 
         <div class="control-group">
-            <h3 data-translate="tasksTitle">2. Задания</h3>
+            <h3 data-translate="tasksTitle"></h3>
             <div id="task-list"></div>
-            <button id="add-task-btn" class="btn btn-add" data-translate="addTaskBtn">+ Добавить задание</button>
+            <button id="add-task-btn" class="btn btn-add" data-translate="addTaskBtn"></button>
         </div>
         
-        <button id="generate-code-btn" class="btn btn-main-action" data-translate="generateBtn">Сгенерировать код игры</button>
+        <button id="generate-code-btn" class="btn btn-main-action" data-translate="generateBtn"></button>
 
         <div id="output-container">
-            <h3 data-translate="outputTitle">3. Готовый код для вставки</h3>
-            <p data-translate="outputInstructions">Скопируйте этот код и вставьте его на новый слайд в Genially через "Вставка" -> "Другое".</p>
+            <h3 data-translate="outputTitle"></h3>
+            <p data-translate="outputInstructions"></p>
             <textarea id="generated-code" readonly></textarea>
-            <button id="copy-code-btn" class="btn copy-button" data-translate="copyBtn">Скопировать код</button>
+            <button id="copy-code-btn" class="btn copy-button" data-translate="copyBtn"></button>
         </div>
     </div>
     
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // --- СЛОВАРЬ ДЛЯ ПЕРЕВОДА ИНТЕРФЕЙСА ---
         const translations = {
             ru: {
                 mainTitle: "Конструктор диктанта",
@@ -117,7 +115,6 @@
                 answerPlaceholder: "КОТ",
                 feedbackLabel: "Фидбек после ответа (текст, эмодзи или ссылка на GIF):",
                 feedbackPlaceholder: "👍 или https://media.giphy.com/cat.gif",
-                // Тексты для сгенерированной игры
                 gameTitle: "Интерактивный диктант",
                 gameImageTaskHeader: "Что изображено?",
                 gameDefinitionTaskHeader: "Разгадай слово",
@@ -126,7 +123,9 @@
                 gameContinueBtn: "Продолжить",
                 gameCongratsTitle: "🎉 Поздравляем! 🎉",
                 gameCongratsText: "Ты успешно справился со всеми заданиями!",
-                gameRestartBtn: "Начать заново"
+                gameRestartBtn: "Начать заново",
+                correctFeedback: ['Отлично!', 'Верно!', 'Так держать!', 'Молодец!', 'Супер!'],
+                incorrectFeedback: 'Попробуй еще раз!'
             },
             en: {
                 mainTitle: "Dictation Builder",
@@ -159,7 +158,6 @@
                 answerPlaceholder: "CAT",
                 feedbackLabel: "Feedback after answer (text, emoji, or GIF URL):",
                 feedbackPlaceholder: "👍 or https://media.giphy.com/cat.gif",
-                // Texts for the generated game
                 gameTitle: "Interactive Dictation",
                 gameImageTaskHeader: "What is pictured?",
                 gameDefinitionTaskHeader: "Guess the word",
@@ -168,7 +166,9 @@
                 gameContinueBtn: "Continue",
                 gameCongratsTitle: "🎉 Congratulations! 🎉",
                 gameCongratsText: "You have successfully completed all tasks!",
-                gameRestartBtn: "Start over"
+                gameRestartBtn: "Start over",
+                correctFeedback: ['Great!', 'Correct!', 'Well done!', 'Awesome!', 'Super!'],
+                incorrectFeedback: 'Try again!'
             }
         };
 
@@ -183,29 +183,70 @@
         
         let currentLang = 'ru';
 
+        // --- LOCAL STORAGE FUNCTIONS ---
+        const saveState = () => {
+            const tasksData = Array.from(document.querySelectorAll('.task-editor-item')).map(item => ({
+                type: item.querySelector('.task-type-select').value,
+                contentImage: item.querySelector('.task-content-image').value,
+                contentDefinition: item.querySelector('.task-content-definition').value,
+                answer: item.querySelector('.task-answer').value,
+                feedback: item.querySelector('.task-feedback').value,
+            }));
+
+            const state = {
+                lang: languageSelector.value,
+                difficulty: difficultySelector.value,
+                tasks: tasksData,
+            };
+            localStorage.setItem('dictationBuilderState', JSON.stringify(state));
+        };
+
+        const loadState = () => {
+            const savedState = localStorage.getItem('dictationBuilderState');
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                languageSelector.value = state.lang || 'ru';
+                difficultySelector.value = state.difficulty || 'scramble';
+                
+                setLanguage(languageSelector.value);
+
+                if (state.tasks && state.tasks.length > 0) {
+                    taskList.innerHTML = '';
+                    state.tasks.forEach(taskData => addTaskEditor(taskData));
+                } else {
+                    addTaskEditor(); // Add one empty task if none saved
+                }
+            } else {
+                setLanguage(currentLang);
+                addTaskEditor(); // Add one empty task on first load
+            }
+        };
+        
+        // --- LANGUAGE AND UI FUNCTIONS ---
         const setLanguage = (lang) => {
             currentLang = lang;
             const langDict = translations[lang];
             document.querySelectorAll('[data-translate]').forEach(el => {
                 const key = el.dataset.translate;
                 if (langDict[key]) {
-                    el.textContent = langDict[key];
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                        el.placeholder = langDict[key];
+                    } else {
+                        el.textContent = langDict[key];
+                    }
                 }
             });
-            // Обновляем текст в select-опциях
             difficultySelector.querySelector('[value="scramble"]').textContent = langDict.difficultyScramble;
             difficultySelector.querySelector('[value="type"]').textContent = langDict.difficultyType;
-
-            // Обновляем плейсхолдеры и лейблы в уже существующих карточках
-             document.querySelectorAll('.task-editor-item').forEach(card => updateCardLanguage(card, lang));
+            document.querySelectorAll('.task-editor-item').forEach(card => updateCardLanguage(card, lang));
         };
 
         const updateCardLanguage = (cardElement, lang) => {
             const langDict = translations[lang];
             cardElement.querySelector('.delete-task-btn').textContent = langDict.deleteBtn;
-            cardElement.querySelector('.task-type-label').textContent = langDict.taskTypeLabel;
             cardElement.querySelector('.task-type-select option[value="image"]').textContent = langDict.taskTypeImage;
             cardElement.querySelector('.task-type-select option[value="definition"]').textContent = langDict.taskTypeDefinition;
+            cardElement.querySelector('.task-type-label').textContent = langDict.taskTypeLabel;
             cardElement.querySelector('.content-image-group label').textContent = langDict.imageLinkLabel;
             cardElement.querySelector('.task-content-image').placeholder = langDict.imageLinkPlaceholder;
             cardElement.querySelector('.content-definition-group label').textContent = langDict.definitionLabel;
@@ -216,10 +257,12 @@
             cardElement.querySelector('.task-feedback').placeholder = langDict.feedbackPlaceholder;
         };
         
-        const addTaskEditor = () => {
+        const addTaskEditor = (data = {}) => {
             const langDict = translations[currentLang];
             const taskDiv = document.createElement('div');
             taskDiv.className = 'task-editor-item';
+
+            // HTML structure for a task card
             taskDiv.innerHTML = `
                 <button class="btn btn-danger delete-task-btn">${langDict.deleteBtn}</button>
                 <div class="field-group">
@@ -246,27 +289,53 @@
                     <input type="text" class="task-feedback" placeholder="${langDict.feedbackPlaceholder}">
                 </div>
             `;
+            
+            // Populate with data if loading from state
+            const typeSelect = taskDiv.querySelector('.task-type-select');
+            const imageGroup = taskDiv.querySelector('.content-image-group');
+            const definitionGroup = taskDiv.querySelector('.content-definition-group');
+            
+            typeSelect.value = data.type || 'image';
+            taskDiv.querySelector('.task-content-image').value = data.contentImage || '';
+            taskDiv.querySelector('.task-content-definition').value = data.contentDefinition || '';
+            taskDiv.querySelector('.task-answer').value = data.answer || '';
+            taskDiv.querySelector('.task-feedback').value = data.feedback || '';
+
+            imageGroup.style.display = typeSelect.value === 'image' ? 'block' : 'none';
+            definitionGroup.style.display = typeSelect.value === 'definition' ? 'block' : 'none';
+
             taskList.appendChild(taskDiv);
         };
 
+        // --- EVENT LISTENERS ---
         taskList.addEventListener('click', (e) => {
             if (e.target.classList.contains('delete-task-btn')) {
                 e.target.closest('.task-editor-item').remove();
+                saveState();
             }
         });
 
         taskList.addEventListener('change', (e) => {
             if (e.target.classList.contains('task-type-select')) {
                 const parent = e.target.closest('.task-editor-item');
-                const imageGroup = parent.querySelector('.content-image-group');
-                const definitionGroup = parent.querySelector('.content-definition-group');
-                imageGroup.style.display = e.target.value === 'image' ? 'block' : 'none';
-                definitionGroup.style.display = e.target.value === 'definition' ? 'block' : 'none';
+                parent.querySelector('.content-image-group').style.display = e.target.value === 'image' ? 'block' : 'none';
+                parent.querySelector('.content-definition-group').style.display = e.target.value === 'definition' ? 'block' : 'none';
             }
+            saveState();
         });
         
-        languageSelector.addEventListener('change', (e) => setLanguage(e.target.value));
-        addTaskBtn.addEventListener('click', addTaskEditor);
+        taskList.addEventListener('input', saveState);
+        difficultySelector.addEventListener('change', saveState);
+
+        languageSelector.addEventListener('change', (e) => {
+            setLanguage(e.target.value);
+            saveState();
+        });
+        
+        addTaskBtn.addEventListener('click', () => {
+            addTaskEditor();
+            saveState();
+        });
         
         generateCodeBtn.addEventListener('click', () => {
             const tasks = Array.from(document.querySelectorAll('.task-editor-item')).map((item, index) => {
@@ -277,23 +346,15 @@
                 const answer = item.querySelector('.task-answer').value.trim();
                 const feedback = item.querySelector('.task-feedback').value.trim();
                 
-                return {
-                    id: `task_${index}_${Date.now()}`, type, content, answer,
-                    feedbackOverlayContent: feedback || '✅'
-                };
+                return { id: `task_${index}`, type, content, answer, feedbackOverlayContent: feedback };
             }).filter(task => task.content && task.answer);
             
             if (tasks.length === 0) {
-                alert(currentLang === 'ru' ? 'Пожалуйста, добавьте хотя бы одно задание.' : 'Please add at least one task.');
+                alert(currentLang === 'ru' ? 'Пожалуйста, добавьте хотя бы одно валидное задание (с контентом и ответом).' : 'Please add at least one valid task (with content and an answer).');
                 return;
             }
 
-            const gameConfig = {
-                lang: currentLang,
-                difficulty: difficultySelector.value,
-                tasks: tasks
-            };
-            
+            const gameConfig = { lang: currentLang, difficulty: difficultySelector.value, tasks };
             generatedCodeTextarea.value = generateFinalHtml(gameConfig, translations);
             outputContainer.style.display = 'block';
             generatedCodeTextarea.select();
@@ -308,36 +369,205 @@
             }, 2000);
         });
 
-        // --- Инициализация редактора ---
-        setLanguage(currentLang);
-        addTaskEditor();
+        // --- INITIALIZATION ---
+        loadState();
     });
 
-    function generateFinalHtml(config, translations) {
-        const configString = JSON.stringify(config);
-        const translationsString = JSON.stringify(translations);
-        
-        // Вся логика и стили игры, упакованные в одну строку
+    function generateFinalHtml(config, allTranslations) {
+        const gameTranslations = {
+            gameTitle: allTranslations[config.lang].gameTitle,
+            gameImageTaskHeader: allTranslations[config.lang].gameImageTaskHeader,
+            gameDefinitionTaskHeader: allTranslations[config.lang].gameDefinitionTaskHeader,
+            gameInputPlaceholder: allTranslations[config.lang].gameInputPlaceholder,
+            gameCheckBtn: allTranslations[config.lang].gameCheckBtn,
+            gameContinueBtn: allTranslations[config.lang].gameContinueBtn,
+            gameCongratsTitle: allTranslations[config.lang].gameCongratsTitle,
+            gameCongratsText: allTranslations[config.lang].gameCongratsText,
+            gameRestartBtn: allTranslations[config.lang].gameRestartBtn,
+            correctFeedback: allTranslations[config.lang].correctFeedback,
+            incorrectFeedback: allTranslations[config.lang].incorrectFeedback,
+        };
+
+        const gameCSS = `
+        :root{--p:#4a90e2;--s:#f5a623;--c:#50e3c2;--i:#d0021b;--lb:#f9f9f9;--t:#333;--bg:rgba(0,0,0,.6);--br:12px;--sh:0 4px 15px rgba(0,0,0,.1);--ts:.3s}
+        body{font-family:Arial,sans-serif;line-height:1.6;color:var(--t);background-color:var(--lb);margin:0;padding:20px;display:flex;justify-content:center;align-items:flex-start;min-height:100vh}#aw{width:100%;max-width:1200px}h1{text-align:center;color:var(--p);margin-bottom:30px}#mgb{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px}.tc{background:#fff;border-radius:var(--br);box-shadow:var(--sh);cursor:pointer;overflow:hidden;position:relative;transition:transform var(--ts) ease,box-shadow var(--ts) ease;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px;min-height:180px;text-align:center}.tc:hover{transform:translateY(-5px);box-shadow:0 8px 25px rgba(0,0,0,.15)}.tc img{max-width:80px;height:auto;margin-bottom:15px}.tc p{margin:0;font-size:1em;color:#555}.tc.completed{filter:grayscale(80%) brightness(60%);pointer-events:none;cursor:default}.tc .to{position:absolute;top:0;left:0;width:100%;height:100%;background-color:rgba(74,144,226,.7);display:flex;justify-content:center;align-items:center;color:#fff;font-size:2.5em;font-weight:700;text-align:center;opacity:0;visibility:hidden;transition:opacity var(--ts) ease;pointer-events:none}.tc.completed .to{opacity:1;visibility:visible}.to img{max-width:90%;max-height:90%;object-fit:contain;margin:0}.mo{position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg);display:flex;justify-content:center;align-items:center;z-index:1000;backdrop-filter:blur(5px);opacity:0;visibility:hidden;transition:opacity var(--ts) ease,visibility var(--ts) ease}.mo.active{opacity:1;visibility:visible}.mc{background:#fff;padding:30px;border-radius:var(--br);box-shadow:var(--sh);width:90%;max-width:600px;text-align:center;transform:scale(.9);opacity:0;transition:transform var(--ts) ease,opacity var(--ts) ease}.mo.active .mc{transform:scale(1);opacity:1}.mh{font-size:1.8em;font-weight:700;color:var(--p)}.mb{margin:25px 0}.mb img{max-width:150px;height:auto;border-radius:8px}.mb p{font-size:1.2em;line-height:1.5;color:#555}.ai{width:calc(100% - 24px);padding:12px;border:2px solid #ddd;border-radius:var(--br);font-size:1.5em;text-align:center;text-transform:uppercase;outline:0;transition:border-color var(--ts) ease;margin-top:20px;font-family:Arial,sans-serif}.ai:focus{border-color:var(--p)}.scl{margin-top:20px}.sic{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;min-height:60px;border:2px dashed #ccc;border-radius:var(--br);padding:15px;background-color:#fafafa}.sclc{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:25px;padding:15px;border-top:1px solid #eee}.lb{background:var(--s);color:#fff;padding:12px 18px;border-radius:8px;cursor:grab;font-weight:700;font-size:1.4em;user-select:none;box-shadow:0 2px 5px rgba(0,0,0,.1);transition:background var(--ts) ease,transform var(--ts) ease}.lb:hover{transform:translateY(-2px)}.lb.dragging{opacity:.5;box-shadow:0 5px 15px rgba(0,0,0,.3)}.btn{background-color:var(--p);color:#fff;padding:12px 25px;border:none;border-radius:var(--br);cursor:pointer;font-size:1.1em;font-weight:700;transition:background-color var(--ts) ease,transform var(--ts) ease;text-decoration:none;display:inline-block;margin:5px}.btn:hover{background-color:#357abd;transform:translateY(-2px)}#cmb{background-color:var(--c)}#cmb:hover{background-color:#3dbca0}.fm{margin-top:20px;font-size:1.2em;font-weight:700;min-height:25px;transition:color var(--ts) ease}.fm.correct{color:var(--c)}.fm.incorrect{color:var(--i)}#gom .mc{border:3px solid var(--c)}#gom h2{font-size:2.5em;color:var(--c);margin-bottom:20px}#gom .btn{background-color:var(--s)}
+        `.replace(/\n\s*/g, '');
+
+        const gameJS = `
+        document.addEventListener('DOMContentLoaded', () => {
+            const gameConfig = ${JSON.stringify(config)};
+            const T = ${JSON.stringify(gameTranslations)};
+            const mainGameBoard = document.getElementById('mgb'),
+                taskModalOverlay = document.getElementById('tmo'),
+                modalTaskHeader = document.getElementById('mth'),
+                modalTaskImage = document.getElementById('mti'),
+                modalTaskDefinition = document.getElementById('mtd'),
+                answerTextInput = document.getElementById('ai'),
+                scrambleContainer = document.querySelector('.scl'),
+                sortableInputContainer = document.getElementById('sic'),
+                scrambledLettersContainer = document.getElementById('sclc'),
+                feedbackMessage = document.getElementById('fm'),
+                checkAnswerButton = document.getElementById('cab'),
+                closeModalButton = document.getElementById('cmb'),
+                gameOverModal = document.getElementById('gom');
+            let currentTask = null, draggedItem = null;
+
+            function shuffleArray(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+            function getRandomCorrectFeedback() { const m = T.correctFeedback; return m[Math.floor(Math.random() * m.length)]; }
+            function createLetterBox(l) { const e = document.createElement('div'); e.className = 'lb'; e.textContent = l; e.draggable = true; return e; }
+
+            function setupScrambleMode(answer) {
+                sortableInputContainer.innerHTML = '';
+                scrambledLettersContainer.innerHTML = '';
+                const letters = shuffleArray([...answer.toUpperCase().split('')]);
+                letters.forEach(l => scrambledLettersContainer.appendChild(createLetterBox(l)));
+            }
+
+            function openTaskModal(a) {
+                currentTask = a;
+                feedbackMessage.textContent = '';
+                feedbackMessage.className = 'fm';
+                checkAnswerButton.style.display = 'inline-block';
+                closeModalButton.style.display = 'none';
+
+                if (a.type === 'image') {
+                    modalTaskImage.src = a.content;
+                    modalTaskImage.style.display = 'block';
+                    modalTaskDefinition.style.display = 'none';
+                    modalTaskHeader.textContent = T.gameImageTaskHeader;
+                } else {
+                    modalTaskDefinition.textContent = a.content;
+                    modalTaskDefinition.style.display = 'block';
+                    modalTaskImage.style.display = 'none';
+                    modalTaskHeader.textContent = T.gameDefinitionTaskHeader;
+                }
+
+                if (gameConfig.difficulty === 'type') {
+                    answerTextInput.value = '';
+                    answerTextInput.style.display = 'block';
+                    scrambleContainer.style.display = 'none';
+                    answerTextInput.focus();
+                } else {
+                    answerTextInput.style.display = 'none';
+                    scrambleContainer.style.display = 'block';
+                    setupScrambleMode(a.answer);
+                }
+                taskModalOverlay.classList.add('active');
+            }
+
+            function closeTaskModal() { taskModalOverlay.classList.remove('active'); checkGameCompletion(); }
+
+            function checkAnswer() {
+                if (!currentTask) return;
+                let userAnswer = gameConfig.difficulty === 'type' ? answerTextInput.value.toUpperCase().trim() : Array.from(sortableInputContainer.children).map(e => e.textContent).join('');
+                if (userAnswer === currentTask.answer.toUpperCase().trim()) {
+                    feedbackMessage.textContent = getRandomCorrectFeedback();
+                    feedbackMessage.className = 'fm correct';
+                    checkAnswerButton.style.display = 'none';
+                    closeModalButton.style.display = 'inline-block';
+                    currentTask.isCompleted = true;
+                    markTaskAsCompleted(currentTask);
+                } else {
+                    feedbackMessage.textContent = T.incorrectFeedback;
+                    feedbackMessage.className = 'fm incorrect';
+                }
+            }
+
+            function markTaskAsCompleted(task) {
+                const taskCard = document.getElementById(task.id);
+                if (!taskCard) return;
+                taskCard.classList.add('completed');
+                const overlay = taskCard.querySelector('.to');
+                const feedbackContent = task.feedbackOverlayContent;
+                if (feedbackContent) {
+                    if (feedbackContent.startsWith('http')) {
+                        overlay.innerHTML = \`<img src="\${feedbackContent}" alt="feedback">\`;
+                    } else {
+                        overlay.textContent = feedbackContent;
+                    }
+                } else {
+                    overlay.textContent = '✔'; // Default checkmark if feedback is empty
+                }
+            }
+
+            function checkGameCompletion() { if (gameConfig.tasks.every(a => a.isCompleted)) { setTimeout(() => gameOverModal.classList.add('active'), 500); } }
+
+            function initializeGameElements() {
+                document.querySelector('#aw h1').textContent = T.gameTitle;
+                checkAnswerButton.textContent = T.gameCheckBtn;
+                closeModalButton.textContent = T.gameContinueBtn;
+                answerTextInput.placeholder = T.gameInputPlaceholder;
+                const g = gameOverModal.querySelector('.mc');
+                g.querySelector('h2').textContent = T.gameCongratsTitle;
+                g.querySelector('p').textContent = T.gameCongratsText;
+                g.querySelector('button').textContent = T.gameRestartBtn;
+                g.querySelector('button').onclick = () => location.reload();
+
+                gameConfig.tasks.forEach(a => {
+                    a.isCompleted = false;
+                    const t = document.createElement('div');
+                    t.className = 'tc';
+                    t.id = a.id;
+                    if (a.type === 'image') {
+                        const img = document.createElement('img');
+                        img.src = a.content;
+                        img.alt = "";
+                        t.appendChild(img);
+                    } else {
+                        const p = document.createElement('p');
+                        p.textContent = a.content;
+                        t.appendChild(p);
+                    }
+                    const overlay = document.createElement('div');
+                    overlay.className = 'to';
+                    t.appendChild(overlay);
+
+                    t.addEventListener('click', () => { if (!a.isCompleted) openTaskModal(a); });
+                    mainGameBoard.appendChild(t);
+                });
+            }
+
+            checkAnswerButton.addEventListener('click', checkAnswer);
+            closeModalButton.addEventListener('click', closeTaskModal);
+            answerTextInput.addEventListener('keypress', e => { if (e.key === 'Enter') checkAnswer(); });
+
+            function getDragAfterElement(container, y) {
+                const draggableElements = [...container.querySelectorAll('.lb:not(.dragging)')];
+                return draggableElements.reduce((closest, child) => {
+                    const box = child.getBoundingClientRect();
+                    const offset = y - box.top - box.height / 2;
+                    if (offset < 0 && offset > closest.offset) {
+                        return { offset: offset, element: child };
+                    } else {
+                        return closest;
+                    }
+                }, { offset: Number.NEGATIVE_INFINITY }).element;
+            }
+
+            [sortableInputContainer, scrambledLettersContainer].forEach(container => {
+                container.addEventListener('dragstart', e => { if (e.target.classList.contains('lb')) { draggedItem = e.target; setTimeout(() => draggedItem.classList.add('dragging'), 0); } });
+                container.addEventListener('dragend', () => { if (draggedItem) { draggedItem.classList.remove('dragging'); draggedItem = null; } });
+                container.addEventListener('dragover', e => { e.preventDefault(); const afterElement = getDragAfterElement(container, e.clientY); if (afterElement == null) { container.appendChild(draggedItem); } else { container.insertBefore(draggedItem, afterElement); } });
+            });
+
+            initializeGameElements();
+        });
+        `.replace(/\n\s*/g, '');
+
         return `
 <!DOCTYPE html>
 <html lang="${config.lang}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Dictation</title>
-    <style>
-        :root{--primary-color:#4a90e2;--secondary-color:#f5a623;--correct-color:#50e3c2;--incorrect-color:#d0021b;--light-bg-color:#f9f9f9;--text-color:#333;--background-color:rgba(0,0,0,0.6);--border-radius:12px;--shadow:0 4px 15px rgba(0,0,0,0.1);--transition-speed:0.3s}
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
-        body{font-family:'Montserrat',sans-serif;line-height:1.6;color:var(--text-color);background-color:var(--light-bg-color);margin:0;padding:20px;display:flex;justify-content:center;align-items:flex-start;min-height:100vh}#app-wrapper{width:100%;max-width:1200px}h1{text-align:center;color:var(--primary-color);margin-bottom:30px}#main-game-board{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px}.task-card{background:white;border-radius:var(--border-radius);box-shadow:var(--shadow);cursor:pointer;overflow:hidden;position:relative;transition:transform var(--transition-speed) ease,box-shadow var(--transition-speed) ease;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px;min-height:180px;text-align:center}.task-card:hover{transform:translateY(-5px);box-shadow:0 8px 25px rgba(0,0,0,0.15)}.task-card img{max-width:80px;height:auto;margin-bottom:15px}.task-card p{margin:0;font-size:1em;color:#555}.task-card.completed{filter:grayscale(80%) brightness(60%);pointer-events:none;cursor:default}.task-card .task-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background-color:rgba(74,144,226,0.7);display:flex;justify-content:center;align-items:center;color:white;font-size:2.5em;font-weight:bold;text-align:center;opacity:0;visibility:hidden;transition:opacity var(--transition-speed) ease;pointer-events:none}.task-card.completed .task-overlay{opacity:1;visibility:visible}.task-overlay img{max-width:90%;max-height:90%;object-fit:contain;margin:0}.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:var(--background-color);display:flex;justify-content:center;align-items:center;z-index:1000;backdrop-filter:blur(5px);opacity:0;visibility:hidden;transition:opacity var(--transition-speed) ease,visibility var(--transition-speed) ease}.modal-overlay.active{opacity:1;visibility:visible}.modal-content{background:white;padding:30px;border-radius:var(--border-radius);box-shadow:var(--shadow);width:90%;max-width:600px;text-align:center;transform:scale(0.9);opacity:0;transition:transform var(--transition-speed) ease,opacity var(--transition-speed) ease}.modal-overlay.active .modal-content{transform:scale(1);opacity:1}.modal-header{font-size:1.8em;font-weight:bold;color:var(--primary-color)}.modal-body{margin:25px 0}.modal-body img{max-width:150px;height:auto;border-radius:8px}.modal-body p{font-size:1.2em;line-height:1.5;color:#555}.answer-input{width:calc(100% - 24px);padding:12px;border:2px solid #ddd;border-radius:var(--border-radius);font-size:1.5em;text-align:center;text-transform:uppercase;outline:none;transition:border-color var(--transition-speed) ease;margin-top:20px;font-family:'Montserrat',sans-serif}.answer-input:focus{border-color:var(--primary-color)}.scramble-container{margin-top:20px}.sortable-input-container{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;min-height:60px;border:2px dashed #ccc;border-radius:var(--border-radius);padding:15px;background-color:#fafafa}.scrambled-letters-container{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:25px;padding:15px;border-top:1px solid #eee}.letter-box{background:var(--secondary-color);color:white;padding:12px 18px;border-radius:8px;cursor:grab;font-weight:bold;font-size:1.4em;user-select:none;box-shadow:0 2px 5px rgba(0,0,0,0.1);transition:background var(--transition-speed) ease,transform var(--transition-speed) ease}.letter-box:hover{transform:translateY(-2px)}.letter-box.dragging{opacity:0.5;box-shadow:0 5px 15px rgba(0,0,0,0.3)}.btn{background-color:var(--primary-color);color:white;padding:12px 25px;border:none;border-radius:var(--border-radius);cursor:pointer;font-size:1.1em;font-weight:bold;transition:background-color var(--transition-speed) ease,transform var(--transition-speed) ease;text-decoration:none;display:inline-block;margin:5px}.btn:hover{background-color:#357abd;transform:translateY(-2px)}#closeModalButton{background-color:var(--correct-color)}#closeModalButton:hover{background-color:#3dbca0}.feedback-message{margin-top:20px;font-size:1.2em;font-weight:bold;min-height:25px;transition:color var(--transition-speed) ease}.feedback-message.correct{color:var(--correct-color)}.feedback-message.incorrect{color:var(--incorrect-color)}#gameOverModal .modal-content{border:3px solid var(--correct-color)}#gameOverModal h2{font-size:2.5em;color:var(--correct-color);margin-bottom:20px}#gameOverModal .btn{background-color:var(--secondary-color)}
-    </style>
+    <title>${gameTranslations.gameTitle}</title>
+    <style>${gameCSS}</style>
 </head>
 <body>
-    <div id="app-wrapper"><h1></h1><div id="main-game-board"></div></div>
-    <div id="taskModalOverlay" class="modal-overlay"><div class="modal-content"><div id="modalTaskHeader" class="modal-header"></div><div class="modal-body"><img id="modalTaskImage" src="" alt="" style="display:none"><p id="modalTaskDefinition" style="display:none"></p><input type="text" id="answerTextInput" class="answer-input" style="display:none"><div class="scramble-container" style="display:none"><div id="sortableInputContainer" class="sortable-input-container"></div><div id="scrambledLettersContainer" class="scrambled-letters-container"></div></div></div><div id="feedbackMessage" class="feedback-message"></div><div class="modal-footer"><button id="checkAnswerButton" class="btn"></button><button id="closeModalButton" class="btn" style="display:none"></button></div></div></div>
-    <div id="gameOverModal" class="modal-overlay"><div class="modal-content"><h2></h2><p></p><button class="btn"></button></div></div>
-    <script>
-        document.addEventListener('DOMContentLoaded',()=>{const gameConfig=${configString};const allTranslations=${translationsString};const T=allTranslations[gameConfig.lang];const mainGameBoard=document.getElementById('main-game-board'),taskModalOverlay=document.getElementById('taskModalOverlay'),modalTaskHeader=document.getElementById('modalTaskHeader'),modalTaskImage=document.getElementById('modalTaskImage'),modalTaskDefinition=document.getElementById('modalTaskDefinition'),answerTextInput=document.getElementById('answerTextInput'),scrambleContainer=document.querySelector('.scramble-container'),sortableInputContainer=document.getElementById('sortableInputContainer'),scrambledLettersContainer=document.getElementById('scrambledLettersContainer'),feedbackMessage=document.getElementById('feedbackMessage'),checkAnswerButton=document.getElementById('checkAnswerButton'),closeModalButton=document.getElementById('closeModalButton'),gameOverModal=document.getElementById('gameOverModal');let currentTask=null,draggedItem=null;function shuffleArray(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}function getRandomCorrectFeedback(){const m=T.correctFeedback||['Great!','Correct!','Well done!'];return m[Math.floor(Math.random()*m.length)]}function createLetterBox(l){const e=document.createElement('div');return e.className='letter-box',e.textContent=l,e.draggable=!0,e}function setupScrambleMode(a){sortableInputContainer.innerHTML='',scrambledLettersContainer.innerHTML='';const l=shuffleArray([...a.toUpperCase().split('')]);l.forEach(l=>scrambledLettersContainer.appendChild(createLetterBox(l)))}function openTaskModal(a){currentTask=a,feedbackMessage.textContent='',feedbackMessage.className='feedback-message',checkAnswerButton.style.display='inline-block',closeModalButton.style.display='none',a.type==='image'?(modalTaskImage.src=a.content,modalTaskImage.style.display='block',modalTaskDefinition.style.display='none',modalTaskHeader.textContent=T.gameImageTaskHeader):(modalTaskDefinition.textContent=a.content,modalTaskDefinition.style.display='block',modalTaskImage.style.display='none',modalTaskHeader.textContent=T.gameDefinitionTaskHeader),gameConfig.difficulty==='type'?(answerTextInput.value='',answerTextInput.style.display='block',scrambleContainer.style.display='none',answerTextInput.focus()):(answerTextInput.style.display='none',scrambleContainer.style.display='block',setupScrambleMode(a.answer)),taskModalOverlay.classList.add('active')}function closeTaskModal(){taskModalOverlay.classList.remove('active'),checkGameCompletion()}function checkAnswer(){if(!currentTask)return;let a=gameConfig.difficulty==='type'?answerTextInput.value.toUpperCase().trim():Array.from(sortableInputContainer.children).map(e=>e.textContent).join('');a===currentTask.answer.toUpperCase().trim()?(feedbackMessage.textContent=getRandomCorrectFeedback(),feedbackMessage.className='feedback-message correct',checkAnswerButton.style.display='none',closeModalButton.style.display='inline-block',currentTask.isCompleted=!0,markTaskAsCompleted(currentTask)):(feedbackMessage.textContent=T.incorrectFeedback||'Try again!',feedbackMessage.className='feedback-message incorrect')}function markTaskAsCompleted(a){const t=document.getElementById(a.id);if(!t)return;t.classList.add('completed');const e=t.querySelector('.task-overlay');a.feedbackOverlayContent.startsWith('http')?e.innerHTML=\`<img src="\${a.feedbackOverlayContent}" alt="Feedback">\`:e.textContent=a.feedbackOverlayContent}function checkGameCompletion(){gameConfig.tasks.every(a=>a.isCompleted)&&setTimeout(()=>gameOverModal.classList.add('active'),500)}function initializeGame(){document.querySelector('#app-wrapper h1').textContent=T.gameTitle,checkAnswerButton.textContent=T.gameCheckBtn,closeModalButton.textContent=T.gameContinueBtn,answerTextInput.placeholder=T.gameInputPlaceholder;const g=gameOverModal.querySelector('.modal-content');g.querySelector('h2').textContent=T.gameCongratsTitle,g.querySelector('p').textContent=T.gameCongratsText,g.querySelector('button').textContent=T.gameRestartBtn,g.querySelector('button').onclick=()=>location.reload(),gameConfig.tasks.forEach(a=>{a.isCompleted=!1;const t=document.createElement('div');t.className='task-card',t.id=a.id,t.innerHTML=\`\${a.type==='image'?\`<img src="\${a.content}" alt="">\`:\`<p>\${a.content}</p>\`}<div class="task-overlay"></div>\`,t.addEventListener('click',()=>{!a.isCompleted&&openTaskModal(a)}),mainGameBoard.appendChild(t)})}checkAnswerButton.addEventListener('click',checkAnswer),closeModalButton.addEventListener('click',closeTaskModal),answerTextInput.addEventListener('keypress',e=>{e.key==='Enter'&&checkAnswer()});function getDragAfterElement(c,y){const d=[...c.querySelectorAll('.letter-box:not(.dragging)')];return d.reduce((c,e)=>{const t=e.getBoundingClientRect(),o=y-t.top-t.height/2;return o<0&&o>c.offset?{offset:o,element:e}:c},{offset:Number.NEGATIVE_INFINITY}).element}[sortableInputContainer,scrambledLettersContainer].forEach(c=>{c.addEventListener('dragstart',e=>{e.target.classList.contains('letter-box')&&(draggedItem=e.target,setTimeout(()=>draggedItem.classList.add('dragging'),0))}),c.addEventListener('dragend',()=>{draggedItem&&(draggedItem.classList.remove('dragging'),draggedItem=null)}),c.addEventListener('dragover',e=>{e.preventDefault();const t=getDragAfterElement(c,e.clientY);t==null?c.appendChild(draggedItem):c.insertBefore(draggedItem,t)})}),initializeGame()});
-    <\/script>
+    <div id="aw"><h1></h1><div id="mgb"></div></div>
+    <div id="tmo" class="mo"><div class="mc"><div id="mth" class="mh"></div><div class="mb"><img id="mti" src="" alt="" style="display:none"><p id="mtd" style="display:none"></p><input type="text" id="ai" class="ai" style="display:none"><div class="scl" style="display:none"><div id="sic" class="sic"></div><div id="sclc" class="sclc"></div></div></div><div id="fm" class="fm"></div><div class="mf"><button id="cab" class="btn"></button><button id="cmb" class="btn" style="display:none"></button></div></div></div>
+    <div id="gom" class="mo"><div class="mc"><h2></h2><p></p><button class="btn"></button></div></div>
+    <script>${gameJS}</script>
 </body>
 </html>`;
     }
